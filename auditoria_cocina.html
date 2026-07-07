@@ -1,0 +1,3510 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auditoría Interna de Cocina</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --green: #1e6b3e;
+    --green-light: #2e8b57;
+    --green-pale: #e8f5e9;
+    --amber: #e65100;
+    --amber-pale: #fff3e0;
+    --red-pale: #ffebee;
+    --gray: #546e7a;
+    --gray-light: #eceff1;
+    --border: #cfd8dc;
+    --text: #212121;
+    --white: #ffffff;
+    --shadow: 0 2px 8px rgba(0,0,0,0.12);
+  }
+  body { font-family: Arial, Helvetica, sans-serif; background: #f4f6f8; color: var(--text); font-size: 14px; }
+
+  /* HEADER */
+  .header { background: var(--green); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: var(--shadow); }
+  .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+  .header p { font-size: 12px; opacity: 0.85; margin-top: 2px; }
+
+  /* TABS */
+  .tabs { display: flex; background: white; border-bottom: 2px solid var(--border); padding: 0 24px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+  .tab-btn { padding: 14px 20px; font-size: 14px; font-weight: 600; color: var(--gray); border: none; background: none; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.2s; }
+  .tab-btn:hover { color: var(--green); }
+  .tab-btn.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* CONTENT */
+  .content { max-width: 960px; margin: 24px auto; padding: 0 16px 60px; }
+  .tab-pane { display: none; }
+  .tab-pane.active { display: block; }
+
+  /* CARDS */
+  .card { background: white; border-radius: 8px; box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; }
+  .card-header { background: var(--green); color: white; padding: 12px 20px; font-size: 13px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; }
+  .card-body { padding: 20px; }
+
+  /* FORM GRID */
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+  .form-group { display: flex; flex-direction: column; }
+  .form-group label { font-size: 12px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 5px; }
+  .form-group input, .form-group select {
+    border: 1px solid var(--border); border-radius: 5px; padding: 8px 10px;
+    font-size: 14px; color: var(--text); background: white; transition: border 0.2s;
+  }
+  .form-group input:focus, .form-group select:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(30,107,62,0.12); }
+
+  /* CHECKLIST TABLE */
+  .checklist-table { width: 100%; border-collapse: collapse; }
+  .checklist-table thead tr { background: var(--green); color: white; }
+  .checklist-table thead th { padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 700; letter-spacing: 0.4px; }
+  .checklist-table thead th.center { text-align: center; }
+  .checklist-table tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+  .checklist-table tbody tr:hover { background: var(--gray-light); }
+  .checklist-table tbody td { padding: 10px 12px; vertical-align: top; }
+  .item-num { font-weight: 700; color: var(--green); font-size: 15px; text-align: center; }
+  .item-name { font-weight: 600; font-size: 13px; }
+  .item-desc { font-size: 11px; color: var(--gray); margin-top: 3px; line-height: 1.4; }
+  .item-max { text-align: center; font-weight: 700; color: var(--gray); }
+
+  /* SCORE SELECTOR */
+  .score-group { display: flex; flex-direction: column; gap: 4px; min-width: 180px; }
+  .score-option { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+  .score-option input[type="radio"] { accent-color: var(--green); width: 15px; height: 15px; cursor: pointer; }
+  .score-option span { font-size: 12px; font-weight: 600; }
+  .score-option .badge { display: inline-block; padding: 1px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+  .badge-cumple { background: #c8e6c9; color: #1b5e20; }
+  .badge-parcial { background: #fff9c4; color: #f57f17; }
+  .badge-nocumple { background: #ffcdd2; color: #b71c1c; }
+
+  /* OBSERVATION */
+  .obs-input { width: 100%; border: 1px solid var(--border); border-radius: 5px; padding: 7px 9px; font-size: 12px; resize: vertical; min-height: 52px; font-family: Arial, sans-serif; }
+  .obs-input:focus { outline: none; border-color: var(--green); }
+
+  /* RESULT BOX */
+  .result-box { display: flex; align-items: center; justify-content: space-around; flex-wrap: wrap; gap: 16px; padding: 20px; }
+  .result-item { text-align: center; }
+  .result-item .val { font-size: 36px; font-weight: 800; color: var(--green); line-height: 1; }
+  .result-item .lbl { font-size: 12px; color: var(--gray); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .status-badge { padding: 10px 24px; border-radius: 24px; font-size: 14px; font-weight: 700; letter-spacing: 0.5px; }
+  .status-aprobado { background: var(--green-pale); color: #1b5e20; border: 2px solid #a5d6a7; }
+  .status-mejora { background: var(--amber-pale); color: #e65100; border: 2px solid #ffcc80; }
+  .status-no-aprobado { background: var(--red-pale); color: #b71c1c; border: 2px solid #ef9a9a; }
+  .result-divider { width: 1px; height: 60px; background: var(--border); }
+
+  /* BUTTONS */
+  .btn { display: inline-flex; align-items: center; gap: 6px; padding: 10px 22px; border-radius: 6px; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; }
+  .btn-primary { background: var(--green); color: white; }
+  .btn-primary:hover { background: var(--green-light); }
+  .btn-secondary { background: white; color: var(--green); border: 2px solid var(--green); }
+  .btn-secondary:hover { background: var(--green-pale); }
+  .btn-danger { background: white; color: #c62828; border: 2px solid #ef9a9a; }
+  .btn-danger:hover { background: var(--red-pale); }
+  .btn-amber { background: #ff8f00; color: white; }
+  .btn-amber:hover { background: #e65100; }
+  .btn-sm { padding: 6px 14px; font-size: 12px; }
+  .btn-group { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+
+  /* HISTORY TABLE */
+  .hist-table { width: 100%; border-collapse: collapse; }
+  .hist-table thead tr { background: var(--green); color: white; }
+  .hist-table thead th { padding: 10px 14px; text-align: left; font-size: 12px; font-weight: 700; }
+  .hist-table tbody tr { border-bottom: 1px solid var(--border); }
+  .hist-table tbody tr:hover { background: var(--gray-light); cursor: pointer; }
+  .hist-table tbody td { padding: 10px 14px; font-size: 13px; }
+  .pct-bar-wrap { width: 100px; background: var(--gray-light); border-radius: 4px; height: 8px; overflow: hidden; }
+  .pct-bar { height: 100%; border-radius: 4px; }
+
+  /* FILTER BAR */
+  .filter-bar { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; margin-bottom: 16px; }
+  .filter-bar .form-group { flex: 1; min-width: 160px; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 60px 20px; color: var(--gray); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state h3 { font-size: 18px; margin-bottom: 8px; }
+
+  /* INFORME VIEW */
+  .informe-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+  .informe-meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; }
+  .meta-item { background: var(--gray-light); border-radius: 6px; padding: 10px 14px; }
+  .meta-item .meta-label { font-size: 11px; font-weight: 700; color: var(--gray); text-transform: uppercase; letter-spacing: 0.4px; }
+  .meta-item .meta-val { font-size: 14px; font-weight: 600; margin-top: 3px; }
+
+  .informe-items-table { width: 100%; border-collapse: collapse; }
+  .informe-items-table thead tr { background: var(--green); color: white; }
+  .informe-items-table thead th { padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 700; }
+  .informe-items-table tbody tr { border-bottom: 1px solid var(--border); }
+  .informe-items-table tbody tr:nth-child(even) { background: #fafafa; }
+  .informe-items-table tbody td { padding: 9px 12px; font-size: 13px; }
+
+  .score-pill { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; font-weight: 700; }
+  .score-full { background: #c8e6c9; color: #1b5e20; }
+  .score-partial { background: #fff9c4; color: #f57f17; }
+  .score-zero { background: #ffcdd2; color: #b71c1c; }
+
+  /* PHOTOS */
+  .photo-upload-area { border: 2px dashed var(--border); border-radius: 8px; padding: 24px; text-align: center; cursor: pointer; transition: border 0.2s, background 0.2s; }
+  .photo-upload-area:hover { border-color: var(--green); background: var(--green-pale); }
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px; }
+  .photo-thumb { position: relative; width: 130px; height: 110px; border-radius: 8px; overflow: hidden; border: 2px solid var(--border); }
+  .photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .photo-del { position: absolute; top: 4px; right: 4px; background: rgba(0,0,0,0.65); color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; cursor: pointer; line-height: 22px; text-align: center; }
+  .hallazgo-textarea { width: 100%; border: 1px solid var(--border); border-radius: 5px; padding: 10px 12px; font-size: 13px; line-height: 1.6; resize: vertical; min-height: 110px; font-family: Arial, sans-serif; color: var(--text); }
+  .hallazgo-textarea:focus { outline: none; border-color: var(--green); box-shadow: 0 0 0 3px rgba(30,107,62,0.12); }
+  .retro-textarea { width: 100%; border: 2px solid #e3f2fd; border-radius: 5px; padding: 10px 12px; font-size: 13px; line-height: 1.6; resize: vertical; min-height: 100px; font-family: Arial, sans-serif; color: var(--text); background: #fafffe; }
+  .retro-textarea:focus { outline: none; border-color: #1565c0; box-shadow: 0 0 0 3px rgba(21,101,192,0.1); }
+  /* Print photos */
+  .print-photo-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .print-photo-grid img { width: 190px; height: 145px; object-fit: cover; border-radius: 6px; border: 1px solid #ccc; }
+
+  /* TOAST */
+  .toast { position: fixed; bottom: 24px; right: 24px; padding: 14px 20px; border-radius: 8px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,0.18); z-index: 9999; display: none; }
+  .toast.show { display: block; animation: slideIn 0.3s ease; }
+  .toast-success { background: #1b5e20; color: white; }
+  .toast-error { background: #b71c1c; color: white; }
+  @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: white; border-radius: 10px; padding: 28px; max-width: 420px; width: 90%; box-shadow: 0 8px 32px rgba(0,0,0,0.2); }
+  .modal h3 { font-size: 17px; margin-bottom: 10px; }
+  .modal p { color: var(--gray); font-size: 14px; margin-bottom: 20px; }
+  .modal .btn-group { justify-content: flex-end; }
+
+  @media (max-width: 640px) {
+    .tabs { overflow-x: auto; }
+    .result-box { flex-direction: column; }
+    .result-divider { display: none; }
+    .checklist-table, .checklist-table thead, .checklist-table tbody, .checklist-table th, .checklist-table td, .checklist-table tr { display: block; }
+    .checklist-table thead { display: none; }
+    .checklist-table tbody tr { padding: 12px; margin-bottom: 8px; border: 1px solid var(--border); border-radius: 6px; }
+  }
+
+  /* ── ANALYTICS ── */
+  .kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:20px; }
+  .kpi-card { background:white; border-radius:8px; box-shadow:var(--shadow); padding:18px 20px; text-align:center; }
+  .kpi-card .kpi-val { font-size:32px; font-weight:800; line-height:1; }
+  .kpi-card .kpi-lbl { font-size:11px; color:var(--gray); text-transform:uppercase; letter-spacing:.5px; margin-top:6px; }
+  .kpi-card .kpi-sub { font-size:12px; color:var(--gray); margin-top:4px; }
+  .rank-table { width:100%; border-collapse:collapse; }
+  .rank-table thead tr { background:var(--green); color:white; }
+  .rank-table thead th { padding:9px 12px; text-align:left; font-size:12px; font-weight:700; }
+  .rank-table tbody tr { border-bottom:1px solid var(--border); }
+  .rank-table tbody tr:hover { background:var(--gray-light); }
+  .rank-table tbody td { padding:9px 12px; font-size:13px; }
+  .alerta-banner { background:#b71c1c; color:white; border-radius:8px; padding:12px 16px; margin-bottom:14px; font-size:13px; font-weight:600; }
+  .alerta-item { margin-top:4px; font-weight:400; font-size:12px; }
+  /* ── SEGUIMIENTO ── */
+  .hall-card { background:white; border-radius:8px; box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden; }
+  .hall-card-header { padding:12px 16px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .hall-card-body { padding:14px 16px; border-top:1px solid var(--border); }
+  .estado-badge { display:inline-block; padding:3px 10px; border-radius:12px; font-size:11px; font-weight:700; }
+  .estado-abierto { background:#ffcdd2; color:#b71c1c; }
+  .estado-proceso { background:#fff9c4; color:#f57f17; }
+  .estado-cerrado { background:#c8e6c9; color:#1b5e20; }
+  .hall-meta { font-size:12px; color:var(--gray); margin-top:4px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <h1>🍽️ Auditoría Interna de Cocina</h1>
+    <p>Chequeo operativo de cocina — Temple Colombia</p>
+  </div>
+</div>
+
+<!-- ===== PANTALLA DE ACCESO ===== -->
+<div id="login-screen" style="position:fixed;inset:0;background:linear-gradient(150deg,#1b5e20 0%,#2e7d32 60%,#388e3c 100%);display:flex;align-items:center;justify-content:center;z-index:9999;">
+  <div style="background:white;border-radius:18px;padding:36px 36px 28px;max-width:380px;width:90%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.35);">
+    <div style="font-size:52px;margin-bottom:4px;">🍳</div>
+    <h2 style="color:#1b5e20;margin:0 0 2px;font-size:20px;">Temple Colombia</h2>
+    <p style="color:#78909c;font-size:12px;margin:0 0 24px;">Auditoría de Cocina</p>
+
+    <div style="margin-bottom:18px;">
+      <p style="font-size:12px;font-weight:700;color:#546e7a;text-transform:uppercase;margin:0 0 10px;">¿Quién eres?</p>
+      <div style="display:flex;gap:10px;">
+        <button onclick="seleccionarRolLogin('supervisor')" id="btn-rol-sup"
+          style="flex:1;padding:14px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:13px;font-weight:700;color:#555;transition:all .15s;">
+          🔒<br><span style="font-size:12px;">Supervisor</span>
+        </button>
+        <button onclick="seleccionarRolLogin('jefe')" id="btn-rol-jefe"
+          style="flex:1;padding:14px 8px;border:2px solid #e0e0e0;border-radius:10px;background:white;cursor:pointer;font-size:13px;font-weight:700;color:#555;transition:all .15s;">
+          👨‍🍳<br><span style="font-size:12px;">Jefe de Cocina</span>
+        </button>
+      </div>
+    </div>
+
+    <div id="login-pin-area" style="display:none;">
+      <input type="password" id="login-pin" maxlength="8"
+        placeholder="PIN de acceso"
+        style="width:100%;border:2px solid #cfd8dc;border-radius:10px;padding:11px;font-size:20px;text-align:center;letter-spacing:6px;margin-bottom:10px;box-sizing:border-box;outline:none;transition:border .15s;"
+        onfocus="this.style.borderColor='#2e7d32'"
+        onblur="this.style.borderColor='#cfd8dc'"
+        onkeydown="if(event.key==='Enter')confirmarLogin()">
+      <button onclick="confirmarLogin()"
+        style="width:100%;background:#2e7d32;color:white;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.5px;">
+        Ingresar →
+      </button>
+      <div id="login-error" style="color:#b71c1c;font-size:12px;margin-top:8px;min-height:18px;"></div>
+    </div>
+  </div>
+</div>
+
+<div class="tabs" style="display:flex;align-items:center;">
+  <button class="tab-btn active" id="tab-formulario" onclick="switchTab('formulario')">📋 Nuevo Formulario</button>
+  <button class="tab-btn" id="tab-historial" onclick="switchTab('historial')">📊 Historial</button>
+  <button class="tab-btn" id="tab-informe" onclick="switchTab('informe')">📄 Informe</button>
+  <button class="tab-btn" id="tab-config" onclick="switchTab('config')">⚙️ Config</button>
+  <button class="tab-btn" id="tab-analisis" onclick="switchTab('analisis')">📈 Análisis</button>
+  <button class="tab-btn" id="tab-seguimiento" onclick="switchTab('seguimiento')">📌 Seguimiento</button>
+  <span id="sync-status" title="Estado de sincronización Firebase" style="display:none;margin-left:auto;font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;white-space:nowrap;letter-spacing:.3px;"></span>
+  <span id="rol-badge" style="display:none;margin-left:auto;font-size:11px;font-weight:700;padding:4px 12px;border-radius:12px;white-space:nowrap;"></span>
+  <button id="btn-cerrar-sesion" onclick="cerrarSesion()" style="display:none;margin-left:8px;background:none;border:1px solid #cfd8dc;border-radius:6px;padding:4px 10px;font-size:11px;color:#546e7a;cursor:pointer;">Salir</button>
+</div>
+
+<div class="content">
+
+  <!-- ========== TAB: FORMULARIO ========== -->
+  <div id="pane-formulario" class="tab-pane active">
+
+    <!-- Info PDV -->
+    <div class="card">
+      <div class="card-header">Información del Punto de Venta</div>
+      <div class="card-body">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>PDV *</label>
+            <input type="text" id="f_pdv" placeholder="Nombre del punto de venta" list="pdv-list">
+            <datalist id="pdv-list"></datalist>
+          </div>
+          <div class="form-group">
+            <label>Fecha *</label>
+            <input type="date" id="f_fecha">
+          </div>
+          <div class="form-group">
+            <label>Hora</label>
+            <input type="time" id="f_hora">
+          </div>
+          <div class="form-group">
+            <label>Manager</label>
+            <input type="text" id="f_manager" placeholder="Nombre del manager">
+          </div>
+          <div class="form-group">
+            <label>Jefe de Cocina</label>
+            <input type="text" id="f_jefe_cocina" placeholder="Nombre del jefe de cocina">
+          </div>
+          <div class="form-group">
+            <label>Coordinador Zona</label>
+            <input type="text" id="f_coordinador_zona" placeholder="Nombre del coordinador de zona">
+          </div>
+          <div class="form-group">
+            <label>Persona que Recibe</label>
+            <input type="text" id="f_receptor" placeholder="Nombre de quien recibe">
+          </div>
+          <div class="form-group">
+            <label>Auditor *</label>
+            <input type="text" id="f_auditor" placeholder="Nombre del auditor">
+          </div>
+          <div class="form-group">
+            <label>Tipo de PDV</label>
+            <select id="f_tipo_pdv">
+              <option value="">-- Seleccionar --</option>
+              <option value="PUB">PUB</option>
+              <option value="BODEGA">BODEGA</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Modalidad</label>
+            <select id="f_modalidad">
+              <option value="">-- Seleccionar --</option>
+              <option value="PROPIO">PROPIO</option>
+              <option value="FRANQUICIA">FRANQUICIA</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Escala -->
+    <div class="card">
+      <div class="card-header">Escala de Calificación</div>
+      <div class="card-body">
+        <div style="display:flex; gap:16px; flex-wrap:wrap;">
+          <span><span class="badge badge-cumple">CUMPLE</span> = Puntaje completo</span>
+          <span><span class="badge badge-parcial">CUMPLE PARCIALMENTE</span> = 50% del puntaje</span>
+          <span><span class="badge badge-nocumple">NO CUMPLE</span> = 0 puntos</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Items -->
+    <div class="card">
+      <div class="card-header">Chequeo Operativo de Cocina</div>
+      <div class="card-body" style="padding:0; overflow-x:auto;">
+        <table class="checklist-table">
+          <thead>
+            <tr>
+              <th class="center" style="width:40px">Nº</th>
+              <th style="width:200px">Ítem a Evaluar</th>
+              <th>Aspecto</th>
+              <th class="center" style="width:50px">Pts</th>
+              <th style="width:200px">Calificación</th>
+              <th style="width:180px">Observaciones</th>
+            </tr>
+          </thead>
+          <tbody id="items-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div class="card">
+      <div class="card-header">Resultado</div>
+      <div class="result-box" id="result-box">
+        <div class="result-item">
+          <div class="val" id="res-obtenido">0</div>
+          <div class="lbl">Pts Obtenidos</div>
+        </div>
+        <div class="result-divider"></div>
+        <div class="result-item">
+          <div class="val">75</div>
+          <div class="lbl">Pts Esperados</div>
+        </div>
+        <div class="result-divider"></div>
+        <div class="result-item">
+          <div class="val" id="res-pct">0%</div>
+          <div class="lbl">Cumplimiento</div>
+        </div>
+        <div class="result-divider"></div>
+        <div class="result-item">
+          <span class="status-badge status-no-aprobado" id="res-estado">NO APROBADO</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hallazgos -->
+    <div class="card">
+      <div class="card-header">Hallazgos</div>
+      <div class="card-body">
+        <p style="font-size:12px;color:#546e7a;margin-bottom:10px">Resumen de observaciones y no conformidades identificadas durante la auditoría.</p>
+        <textarea id="f_hallazgo" class="hallazgo-textarea" placeholder="Describe los hallazgos principales de la auditoría..."></textarea>
+        <button class="btn btn-secondary btn-sm no-print" style="margin-top:8px" onclick="autoHallazgo()">↺ Generar desde observaciones</button>
+      </div>
+    </div>
+
+    <!-- Retroalimentación -->
+    <div class="card" style="border-top: 3px solid #1565c0;">
+      <div class="card-header" style="background:#1565c0;">Retroalimentación / Capacitación Ejecutada</div>
+      <div class="card-body">
+        <p style="font-size:12px;color:#546e7a;margin-bottom:10px">Describe la retroalimentación brindada y/o la capacitación ejecutada durante esta auditoría.</p>
+        <textarea id="f_retroalimentacion" class="retro-textarea" placeholder="Ej: Se capacitó al equipo en rotación PEPS y uso correcto del termómetro. Se realizó demostración práctica de descongelación segura..."></textarea>
+      </div>
+    </div>
+
+    <!-- Novedades y Acciones Correctivas -->
+    <div class="card" style="border-top: 3px solid #e65100;">
+      <div class="card-header" style="background:#e65100;">Novedades y Acciones Correctivas con Producto</div>
+      <div class="card-body">
+        <p style="font-size:12px;color:#546e7a;margin-bottom:10px">Registra las novedades identificadas con el producto y las acciones correctivas tomadas o requeridas durante la auditoría.</p>
+        <textarea id="f_novedades" class="retro-textarea" placeholder="Ej: Se encontró producto vencido en refrigerador 2 — se retiró y registró en formato de bajas. Aceite de freidora #1 fuera de rango — se reemplazó en el momento. Falta de mise en place de salsas — se instruyó al personal..."></textarea>
+      </div>
+    </div>
+
+    <!-- Fotos -->
+    <div class="card">
+      <div class="card-header">Evidencias Fotográficas</div>
+      <div class="card-body">
+        <div class="photo-upload-area no-print" onclick="document.getElementById('f_fotos_input').click()">
+          <input type="file" id="f_fotos_input" accept="image/*" multiple style="display:none" onchange="agregarFotos(this)">
+          <div style="font-size:32px;margin-bottom:8px">📷</div>
+          <div style="font-weight:600;color:#546e7a">Haz clic para agregar fotos</div>
+          <div style="font-size:12px;color:#90a4ae;margin-top:4px">JPG, PNG — puedes seleccionar varias</div>
+        </div>
+        <div class="photo-grid" id="fotos-preview"></div>
+      </div>
+    </div>
+
+    <div class="btn-group no-print">
+      <button class="btn btn-primary" onclick="guardarFormulario()">💾 Guardar Auditoría</button>
+      <button class="btn btn-secondary" onclick="limpiarFormulario()">🔄 Limpiar Formulario</button>
+    </div>
+
+  </div>
+
+  <!-- ========== TAB: HISTORIAL ========== -->
+  <div id="pane-historial" class="tab-pane">
+
+    <div class="card">
+      <div class="card-header">Historial de Auditorías</div>
+      <div class="card-body">
+        <div class="filter-bar">
+          <div class="form-group">
+            <label>Filtrar por PDV</label>
+            <select id="h_pdv_filter" onchange="renderHistorial()">
+              <option value="">Todos los PDV</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Desde</label>
+            <input type="date" id="h_desde" onchange="renderHistorial()">
+          </div>
+          <div class="form-group">
+            <label>Hasta</label>
+            <input type="date" id="h_hasta" onchange="renderHistorial()">
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="limpiarFiltros()">✕ Limpiar filtros</button>
+          <button class="btn btn-amber btn-sm" onclick="exportarConsolidado()">📊 Exportar Consolidado Excel</button>
+          <button class="btn btn-primary btn-sm" id="btn-sync" onclick="sincronizarDesdeSheets()">☁️ Sincronizar</button>
+          <button class="btn btn-secondary btn-sm" onclick="exportarBackup()">💾 Exportar Backup</button>
+        </div>
+
+        <div id="historial-resumen" style="display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px;"></div>
+
+        <div id="historial-container">
+          <div class="empty-state">
+            <div class="icon">📋</div>
+            <h3>Sin auditorías registradas</h3>
+            <p>Completa y guarda un formulario para ver el historial aquí.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ========== TAB: INFORME ========== -->
+  <div id="pane-informe" class="tab-pane">
+
+    <div class="card no-print">
+      <div class="card-header">Seleccionar Auditoría</div>
+      <div class="card-body">
+        <div style="display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;">
+          <div class="form-group" style="flex:1; min-width:200px;">
+            <label>Auditoría</label>
+            <select id="informe_select" onchange="renderInforme()">
+              <option value="">-- Selecciona una auditoría --</option>
+            </select>
+          </div>
+          <div class="btn-group" style="margin:0;">
+            <button class="btn btn-secondary btn-sm" onclick="imprimirPDF()">🖨️ Imprimir / PDF</button>
+            <button class="btn btn-amber btn-sm" onclick="exportarExcel()">📥 Exportar Excel</button>
+            <button class="btn btn-primary btn-sm" onclick="enviarCorreoInforme()">📧 Enviar por correo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="informe-content">
+      <div class="empty-state">
+        <div class="icon">📄</div>
+        <h3>Selecciona una auditoría</h3>
+        <p>Elige una auditoría del selector de arriba para ver su informe.</p>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ========== TAB: CONFIGURACIÓN ========== -->
+  <div id="pane-config" class="tab-pane">
+    <div class="card">
+      <div class="card-header">⚙️ Configuración de Correo</div>
+      <div class="card-body">
+        <p style="font-size:13px;color:#546e7a;margin-bottom:16px">
+          Cuando guardes una auditoría, la app abrirá automáticamente tu correo con el resumen prellenado y listo para enviar.
+        </p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>📧 Correo destino (supervisión)</label>
+            <input type="email" id="cfg_email_to" placeholder="supervisor@templecolombia.com" style="width:100%">
+          </div>
+          <div class="form-group">
+            <label>📧 CC (opcional)</label>
+            <input type="email" id="cfg_email_cc" placeholder="gerencia@templecolombia.com" style="width:100%">
+          </div>
+        </div>
+        <div class="form-group" style="margin-top:8px">
+          <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600;">
+            <input type="checkbox" id="cfg_email_auto" style="width:18px;height:18px;accent-color:#1b4332;">
+            Abrir correo automáticamente al guardar auditoría
+          </label>
+        </div>
+        <div class="form-grid" style="margin-top:16px;border-top:1px solid #e0e0e0;padding-top:16px;">
+          <div style="grid-column:1/-1;font-weight:700;font-size:13px;color:#1b4332;margin-bottom:4px;">☁️ Google Sheets — Sincronización entre dispositivos</div>
+          <div class="form-group">
+            <label>URL del Apps Script</label>
+            <input type="url" id="cfg_sheets_url" placeholder="https://script.google.com/macros/s/.../exec" style="width:100%">
+          </div>
+          <div class="form-group">
+            <label>Token de acceso</label>
+            <input type="text" id="cfg_sheets_token" placeholder="El token que pusiste en el script" style="width:100%">
+          </div>
+        </div>
+        <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="guardarConfig()">💾 Guardar configuración</button>
+          <button class="btn btn-secondary btn-sm" onclick="probarCorreo()">📤 Probar correo</button>
+          <button class="btn btn-secondary btn-sm" onclick="probarConexionSheets()">🔗 Probar conexión Sheets</button>
+        </div>
+        <div id="cfg-status" style="margin-top:12px;font-size:13px;color:#1b4332;display:none;"></div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px;">
+      <div class="card-header">🔐 Control de Acceso — PINs por Rol</div>
+      <div class="card-body">
+        <p style="font-size:13px;color:#546e7a;margin-bottom:16px;">Al abrir la app se pedirá un PIN. Configura uno para cada rol. El jefe de cocina solo verá la pestaña de Seguimiento.</p>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>🔒 PIN Supervisor</label>
+            <input type="password" id="cfg_pin_supervisor" placeholder="Mínimo 4 dígitos" maxlength="8" style="width:100%;letter-spacing:4px;font-size:18px;">
+            <span style="font-size:11px;color:#90a4ae;">Acceso total a todas las pestañas</span>
+          </div>
+          <div class="form-group">
+            <label>👨‍🍳 PIN Jefe de Cocina</label>
+            <input type="password" id="cfg_pin_jefe" placeholder="Mínimo 4 dígitos" maxlength="8" style="width:100%;letter-spacing:4px;font-size:18px;">
+            <span style="font-size:11px;color:#90a4ae;">Solo puede ver y gestionar Seguimiento</span>
+          </div>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-primary btn-sm" onclick="guardarConfig()">💾 Guardar PINs</button>
+          <span style="font-size:12px;color:#90a4ae;">PINs por defecto: Supervisor = <strong>1234</strong> · Jefe = <strong>5678</strong></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="border-top:3px solid #1b4332;margin-top:16px;">
+      <div class="card-header" style="background:#1b4332;">💾 Backup de Datos</div>
+      <div class="card-body">
+        <p style="font-size:13px;color:#546e7a;margin-bottom:14px">
+          Los datos se guardan en este dispositivo. Exporta un backup regularmente para no perder información si limpias el navegador o cambias de dispositivo.
+        </p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-primary btn-sm" onclick="exportarBackup()">💾 Exportar backup ahora</button>
+          <label class="btn btn-secondary btn-sm" style="cursor:pointer;margin:0;">
+            📂 Restaurar desde backup
+            <input type="file" accept=".json" style="display:none" onchange="importarBackup(this)">
+          </label>
+        </div>
+        <div id="backup-info" style="margin-top:12px;font-size:12px;color:#888;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB: ANÁLISIS ========== -->
+  <div id="pane-analisis" class="tab-pane">
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-body" style="padding:14px 20px;">
+        <div class="filter-bar" style="margin:0;">
+          <div class="form-group">
+            <label>Modalidad</label>
+            <select id="analisis-modalidad" onchange="renderAnalisis()" style="min-width:160px;">
+              <option value="">Todas (Propio + Franquicia)</option>
+              <option value="PROPIO">Solo Propio</option>
+              <option value="FRANQUICIA">Solo Franquicia</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipo de PDV</label>
+            <select id="analisis-tipo" onchange="renderAnalisis()" style="min-width:140px;">
+              <option value="">Todos (PUB + Bodega)</option>
+              <option value="PUB">Solo PUB</option>
+              <option value="BODEGA">Solo BODEGA</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div id="analisis-alertas"></div>
+    <div class="kpi-grid" id="analisis-kpis"></div>
+
+    <div class="card">
+      <div class="card-header">📉 Tendencia de Cumplimiento</div>
+      <div class="card-body">
+        <div style="margin-bottom:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <label style="font-size:12px;font-weight:700;color:#546e7a;text-transform:uppercase;">PDV:</label>
+          <select id="trend-pdv" onchange="renderTrendChart()" style="border:1px solid #cfd8dc;border-radius:5px;padding:7px 10px;font-size:13px;flex:1;max-width:300px;">
+            <option value="">Todos los PDV (promedio)</option>
+          </select>
+        </div>
+        <canvas id="trend-canvas" style="width:100%;display:block;border-radius:6px;"></canvas>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">🏆 Ranking de PDV por Cumplimiento</div>
+      <div class="card-body" style="padding:0;overflow-x:auto;">
+        <div id="analisis-ranking"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">🔍 Análisis por Ítem — ¿Qué falla más?</div>
+      <div class="card-body" style="padding:0;overflow-x:auto;">
+        <div id="analisis-items"></div>
+      </div>
+    </div>
+
+    <div id="analisis-content"></div>
+  </div>
+
+  <!-- ========== TAB: SEGUIMIENTO ========== -->
+  <div id="pane-seguimiento" class="tab-pane">
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>📌 Seguimiento de Hallazgos</span>
+        <button class="btn btn-secondary btn-sm" onclick="importarHallazgosHistorico()" title="Genera hallazgos de todas las auditorías previas con No Cumple o Cumple Parcialmente">⬇️ Cargar del historial</button>
+      </div>
+      <div class="card-body">
+        <p style="font-size:12px;color:#546e7a;margin-bottom:14px;">💬 <strong>Jefe de cocina:</strong> agrega comentarios y fotos en cada hallazgo. &nbsp;🔒 <strong>Supervisor:</strong> da el cierre formal.</p>
+        <div class="filter-bar">
+          <div class="form-group">
+            <label>Estado</label>
+            <select id="seg-filtro" onchange="renderSeguimiento()">
+              <option value="">Todos</option>
+              <option value="abierto">Abiertos</option>
+              <option value="en proceso">En proceso</option>
+              <option value="cerrado">Cerrados</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>PDV</label>
+            <select id="seg-pdv" onchange="renderSeguimiento()">
+              <option value="">Todos los PDV</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;" id="seg-summary"></div>
+        <div id="seg-container">
+          <div class="empty-state"><div class="icon">📌</div><h3>Sin hallazgos aún</h3><p>Crea hallazgos desde las tarjetas del historial usando el botón "📌 Hallazgo".</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Storage warning banner -->
+<div id="storage-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#b71c1c;color:white;font-size:13px;font-weight:600;text-align:center;padding:10px 16px;box-shadow:0 2px 8px rgba(0,0,0,.4);">
+  ⚠️ <span id="storage-banner-msg"></span>
+  <button onclick="document.getElementById('storage-banner').style.display='none'" style="margin-left:12px;background:rgba(255,255,255,.2);border:none;color:white;padding:2px 10px;border-radius:4px;cursor:pointer;font-size:12px;">✕</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal Confirmar -->
+<div class="modal-overlay" id="modal-confirm">
+  <div class="modal">
+    <h3 id="modal-title">¿Confirmar acción?</h3>
+    <p id="modal-body"></p>
+    <div style="margin:12px 0 4px;font-size:13px;color:#b71c1c;font-weight:600;">Escribe <strong>ELIMINAR</strong> para confirmar:</div>
+    <input id="modal-confirm-input" type="text" placeholder="ELIMINAR"
+      style="width:100%;padding:8px 10px;border:2px solid #ef9a9a;border-radius:6px;font-size:14px;margin-bottom:14px;box-sizing:border-box;outline:none;"
+      oninput="document.getElementById('modal-ok').disabled = this.value !== 'ELIMINAR'">
+    <div class="btn-group">
+      <button class="btn btn-secondary btn-sm" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-danger btn-sm" id="modal-ok" disabled onclick="">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+// =========================================================
+// ─── FIREBASE CONFIG ──────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyB6Po2tlac0HfaWT4ayuMOe-7YdqdOAO08",
+  authDomain: "aud-temple.firebaseapp.com",
+  databaseURL: "https://aud-temple-default-rtdb.firebaseio.com",
+  projectId: "aud-temple",
+  storageBucket: "aud-temple.firebasestorage.app",
+  messagingSenderId: "789767130484",
+  appId: "1:789767130484:web:57f15cb926948dcde97021"
+};
+let _fbDb             = null;   // Firebase DB reference
+let _hallazgosCache   = null;   // live in-memory copy (null = not yet synced)
+let _configCache      = null;   // live config (null = not yet synced)
+let _fbSyncActivo     = false;
+
+// Sanitize hallazgo ID for use as Firebase key (no . # $ [ ] / :)
+function fbKey(id) { return id.replace(/[.#$[\]/:]/g, '_'); }
+
+// ─────────────────────────────────────────────────────────
+const ITEMS = [
+  { id:1,  nombre:"Rotación y almacenamiento (PEPS)",           maxPts:10, desc:"Correcta rotación del inventario mediante sistema PEPS, adecuada separación entre productos crudos y cocidos, almacenamiento ordenado y materia prima en buen estado organoléptico, sin vencimientos y conservada a temperatura adecuada." },
+  { id:2,  nombre:"Rotulación y control de vida útil",          maxPts:10, desc:"Se verifica que los productos abiertos y las preparaciones cuenten con rotulación adecuada, incluyendo fecha de apertura y vida útil, garantizando su correcta identificación y control." },
+  { id:3,  nombre:"Orden y limpieza general",                   maxPts:5,  desc:"Pisos, paredes, campanas, mesones, equipos, áreas de producción, neveras, congeladores, cauchos y rejillas en adecuadas condiciones de limpieza y organización, libres de residuos y sin acumulación excesiva de hielo." },
+  { id:4,  nombre:"Funcionamiento de equipos y utensilios",     maxPts:5,  desc:"Equipos en correcto funcionamiento, incluyendo horno, freidoras, lava vajillas, sistemas de refrigeración y extracción; adicionalmente, disponibilidad y uso adecuado de gramera y termómetro para el control operativo." },
+  { id:5,  nombre:"Manipulación e higiene personal",            maxPts:5,  desc:"Uniforme completo, lavado de manos, uso correcto de elementos de protección y sin accesorios contaminantes." },
+  { id:6,  nombre:"Estandarización y preparación",              maxPts:10, desc:"Cumplimiento de recetas, gramajes, tiempos y correcta elaboración de subrecetas." },
+  { id:7,  nombre:"Funcionamiento de equipos",                  maxPts:5,  desc:"Equipos funcionando correctamente: horno, freidoras, lava vajillas, refrigeración y extracción." },
+  { id:8,  nombre:"Descongelación segura de productos",         maxPts:5,  desc:"Los productos se descongelan bajo condiciones y temperaturas seguras, garantizando la inocuidad y conservación adecuada de los alimentos." },
+  { id:9,  nombre:"Manejo y limpieza de freidoras",             maxPts:5,  desc:"Freidoras en adecuadas condiciones de limpieza y correcto uso del aceite, garantizando la calidad e inocuidad de los productos." },
+  { id:10, nombre:"Diligenciamiento de formatos",               maxPts:5,  desc:"Correcto diligenciamiento y actualización de los formatos operativos y de control establecidos para la operación." },
+  { id:11, nombre:"Disponibilidad y operación",                 maxPts:10, desc:"Disponibilidad de productos de carta, mise en place completa y tiempos adecuados de operación." },
+];
+const MAX_TOTAL = 75;
+
+// ── IndexedDB para fotos ──
+const IDB_NAME = 'auditoria_fotos_db';
+const IDB_STORE = 'fotos';
+
+function abrirIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(IDB_STORE, { keyPath: 'id' });
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function guardarFotosIDB(auditId, fotos) {
+  try {
+    const db = await abrirIDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).put({ id: auditId, fotos });
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  } catch(e) { console.warn('IDB guardar fotos:', e); }
+}
+
+async function obtenerFotosIDB(auditId) {
+  try {
+    const db = await abrirIDB();
+    return new Promise((resolve) => {
+      const req = db.transaction(IDB_STORE, 'readonly').objectStore(IDB_STORE).get(auditId);
+      req.onsuccess = () => resolve((req.result && req.result.fotos) || []);
+      req.onerror = () => resolve([]);
+    });
+  } catch(e) { return []; }
+}
+
+async function eliminarFotosIDB(auditId) {
+  try {
+    const db = await abrirIDB();
+    return new Promise((resolve) => {
+      const tx = db.transaction(IDB_STORE, 'readwrite');
+      tx.objectStore(IDB_STORE).delete(auditId);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+  } catch(e) {}
+}
+
+// ── Storage helpers ──
+function storageDisponible() {
+  try {
+    const t = '__tc_test__';
+    localStorage.setItem(t, '1');
+    localStorage.removeItem(t);
+    return true;
+  } catch(e) { return false; }
+}
+
+function mostrarBannerStorage(msg) {
+  const b = document.getElementById('storage-banner');
+  const m = document.getElementById('storage-banner-msg');
+  if (b && m) { m.textContent = msg; b.style.display = 'block'; }
+}
+
+function getDB() {
+  try {
+    const db = JSON.parse(localStorage.getItem('auditoria_db') || '[]');
+    // Normalize pct: if stored as ratio (0-1), convert to percentage (0-100)
+    return db.map(r => {
+      if (r.pct !== undefined && r.pct <= 1 && r.pct >= 0) r.pct = r.pct * 100;
+      return r;
+    });
+  }
+  catch(e) { return []; }
+}
+
+function saveDB(d) {
+  try {
+    localStorage.setItem('auditoria_db', JSON.stringify(d));
+  } catch(e) {
+    let msg;
+    if (e.name === 'SecurityError' || e.code === 18) {
+      msg = '❌ Safari en modo privado bloquea el guardado. Sal del modo privado, recarga y vuelve a intentarlo.';
+    } else if (e.name === 'QuotaExceededError' || e.code === 22) {
+      msg = '❌ Almacenamiento lleno. Elimina auditorías antiguas o reduce el número de fotos.';
+    } else {
+      msg = '❌ No se pudo guardar: ' + (e.message || e.name);
+    }
+    showToast(msg, 'error');
+    mostrarBannerStorage(msg.replace('❌ ',''));
+    throw e;
+  }
+}
+
+// Compress image to max 800px wide/tall, quality 0.7
+function comprimirImagen(dataUrl) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      // Use smaller size on mobile to avoid quota issues on Safari iOS
+      const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      const MAX = isMobile ? 480 : 700;
+      const QUALITY = isMobile ? 0.45 : 0.55;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w >= h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      try {
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', QUALITY));
+      } catch(e) {
+        resolve(dataUrl); // canvas failed — keep original
+      }
+    };
+    img.onerror = () => resolve(dataUrl);
+    img.src = dataUrl;
+  });
+}
+
+// =========================================================
+// TABS
+// =========================================================
+function switchTab(tab) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pane-' + tab).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (tab === 'historial') renderHistorial();
+  if (tab === 'informe') renderInformeSelector();
+  if (tab === 'config') cargarConfig();
+  if (tab === 'analisis') renderAnalisis();
+  if (tab === 'seguimiento') renderSeguimiento();
+}
+
+// =========================================================
+// FORMULARIO: RENDER ITEMS
+// =========================================================
+function buildForm() {
+  const tbody = document.getElementById('items-tbody');
+  tbody.innerHTML = '';
+  ITEMS.forEach(item => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="item-num">${item.id}</td>
+      <td><div class="item-name">${item.nombre}</div></td>
+      <td><div class="item-desc">${item.desc}</div></td>
+      <td class="item-max">${item.maxPts}</td>
+      <td>
+        <div class="score-group">
+          <label class="score-option">
+            <input type="radio" name="score_${item.id}" value="cumple" onchange="calcResult()">
+            <span class="badge badge-cumple">CUMPLE</span>
+            <span style="color:#666;font-size:11px">(${item.maxPts} pts)</span>
+          </label>
+          <label class="score-option">
+            <input type="radio" name="score_${item.id}" value="parcial" onchange="calcResult()">
+            <span class="badge badge-parcial">CUMPLE PARCIALMENTE</span>
+            <span style="color:#666;font-size:11px">(${item.maxPts * 0.5} pts)</span>
+          </label>
+          <label class="score-option">
+            <input type="radio" name="score_${item.id}" value="nocumple" onchange="calcResult()">
+            <span class="badge badge-nocumple">NO CUMPLE</span>
+            <span style="color:#666;font-size:11px">(0 pts)</span>
+          </label>
+        </div>
+      </td>
+      <td><textarea class="obs-input" id="obs_${item.id}" placeholder="Observaciones / comentarios..."></textarea></td>
+    `;
+    tbody.appendChild(tr);
+  });
+  calcResult();
+}
+
+function calcResult() {
+  let total = 0;
+  ITEMS.forEach(item => {
+    const sel = document.querySelector(`input[name="score_${item.id}"]:checked`);
+    if (sel) {
+      if (sel.value === 'cumple') total += item.maxPts;
+      else if (sel.value === 'parcial') total += item.maxPts * 0.5;
+    }
+  });
+  const pct = (total / MAX_TOTAL) * 100;
+  document.getElementById('res-obtenido').textContent = total;
+  document.getElementById('res-pct').textContent = pct.toFixed(1) + '%';
+  const estadoEl = document.getElementById('res-estado');
+  if (pct >= 90) {
+    estadoEl.textContent = 'APROBADO';
+    estadoEl.className = 'status-badge status-aprobado';
+  } else if (pct >= 85) {
+    estadoEl.textContent = 'APROBADO CON OPORTUNIDAD DE MEJORA';
+    estadoEl.className = 'status-badge status-mejora';
+  } else {
+    estadoEl.textContent = 'NO APROBADO';
+    estadoEl.className = 'status-badge status-no-aprobado';
+  }
+}
+
+// Photos temp storage
+let fotosTemp = [];
+
+function agregarFotos(input) {
+  const files = Array.from(input.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+      const compressed = await comprimirImagen(e.target.result);
+      fotosTemp.push({ data: compressed, name: file.name });
+      renderFotosPreview();
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = '';
+}
+
+function renderFotosPreview() {
+  const grid = document.getElementById('fotos-preview');
+  if (!grid) return;
+  grid.innerHTML = fotosTemp.map((f, i) => `
+    <div class="photo-thumb">
+      <img src="${f.data}" alt="${f.name}">
+      <button class="photo-del no-print" onclick="eliminarFoto(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function eliminarFoto(idx) {
+  fotosTemp.splice(idx, 1);
+  renderFotosPreview();
+}
+
+function autoHallazgo() {
+  const obs = ITEMS
+    .map(item => ({ nombre: item.nombre, obs: (document.getElementById('obs_' + item.id) || {}).value || '' }))
+    .filter(x => x.obs.trim());
+  if (obs.length === 0) { showToast('No hay observaciones registradas en los ítems.', 'error'); return; }
+  document.getElementById('f_hallazgo').value = obs.map(x => `• ${x.nombre}: ${x.obs.trim()}`).join('\n');
+}
+
+function limpiarFormulario() {
+  ['f_pdv','f_manager','f_jefe_cocina','f_coordinador_zona','f_receptor','f_auditor','f_tipo_pdv','f_modalidad','f_hallazgo','f_retroalimentacion','f_novedades'].forEach(id => { document.getElementById(id).value = ''; });
+  const _now = new Date();
+  document.getElementById('f_fecha').value = _now.toISOString().split('T')[0];
+  document.getElementById('f_hora').value  = _now.toTimeString().slice(0,5);
+  ITEMS.forEach(item => {
+    document.querySelectorAll(`input[name="score_${item.id}"]`).forEach(r => r.checked = false);
+    document.getElementById('obs_' + item.id).value = '';
+  });
+  fotosTemp = [];
+  renderFotosPreview();
+  calcResult();
+}
+
+async function guardarFormulario() {
+  try {
+    const pdv = document.getElementById('f_pdv').value.trim();
+    const fecha = document.getElementById('f_fecha').value;
+    const auditor = document.getElementById('f_auditor').value.trim();
+
+    // Validate required fields with visual highlight
+    const missing = [];
+    const fPdv = document.getElementById('f_pdv');
+    const fFecha = document.getElementById('f_fecha');
+    const fAuditor = document.getElementById('f_auditor');
+    [fPdv, fFecha, fAuditor].forEach(el => el.style.borderColor = '');
+    if (!pdv)    { fPdv.style.borderColor = '#c62828'; fPdv.focus(); missing.push('PDV'); }
+    if (!fecha)  { fFecha.style.borderColor = '#c62828'; missing.push('Fecha'); }
+    if (!auditor){ fAuditor.style.borderColor = '#c62828'; if (!missing.length) fAuditor.focus(); missing.push('Auditor'); }
+    if (missing.length) {
+      showToast('⚠️ Campos requeridos vacíos: ' + missing.join(', '), 'error');
+      return;
+    }
+
+    // Collect scores
+    let puntajeTotal = 0;
+    const itemsData = ITEMS.map(item => {
+      const sel = document.querySelector(`input[name="score_${item.id}"]:checked`);
+      let calificacion = null, puntaje = 0;
+      if (sel) {
+        calificacion = sel.value;
+        if (calificacion === 'cumple') puntaje = item.maxPts;
+        else if (calificacion === 'parcial') puntaje = item.maxPts * 0.5;
+      }
+      puntajeTotal += puntaje;
+      const obsEl = document.getElementById('obs_' + item.id);
+      return { id: item.id, nombre: item.nombre, maxPts: item.maxPts, calificacion, puntaje, obs: obsEl ? obsEl.value : '' };
+    });
+
+    const pct = (puntajeTotal / MAX_TOTAL) * 100;
+    const estado = pct >= 90 ? 'APROBADO' : pct >= 85 ? 'APROBADO CON OPORTUNIDAD DE MEJORA' : 'NO APROBADO';
+
+    const record = {
+      id: Date.now().toString(),
+      pdv, fecha,
+      hora:             (document.getElementById('f_hora') || {value:''}).value,
+      admin:            (document.getElementById('f_manager') || {value:''}).value.trim(),
+      jefeCocina:       (document.getElementById('f_jefe_cocina') || {value:''}).value.trim(),
+      coordinadorZona:  (document.getElementById('f_coordinador_zona') || {value:''}).value.trim(),
+      receptor:         (document.getElementById('f_receptor') || {value:''}).value.trim(),
+      auditor,
+      tipoPdv:          (document.getElementById('f_tipo_pdv') || {value:''}).value,
+      modalidad:        (document.getElementById('f_modalidad') || {value:''}).value,
+      hallazgo:         (document.getElementById('f_hallazgo') || {value:''}).value.trim(),
+      retroalimentacion:(document.getElementById('f_retroalimentacion') || {value:''}).value.trim(),
+      novedades:        (document.getElementById('f_novedades') || {value:''}).value.trim(),
+      fotos: [],  // fotos se guardan en IndexedDB
+      items: itemsData, puntajeTotal, pct, estado,
+      savedAt: new Date().toISOString()
+    };
+
+    // Guardar fotos en IndexedDB (sin límite de espacio)
+    const fotosParaGuardar = fotosTemp.map(f => f.data);
+    await guardarFotosIDB(record.id, fotosParaGuardar);
+
+    const db = getDB();
+    db.push(record);
+    try {
+      saveDB(db);
+      fotosTemp = [];
+      actualizarPDVList();
+      showToast('✅ Auditoría guardada correctamente.', 'success');
+    } catch(e) {
+      db.pop();
+      showToast('❌ No se pudo guardar. El almacenamiento está completamente lleno. Elimina auditorías antiguas.', 'error');
+      return;
+    }
+    limpiarFormulario();
+      autoCrearHallazgos(record);
+      // Auto-send email if configured
+      const _cfg = getConfig();
+      if (_cfg.emailAuto !== false && _cfg.emailTo) {
+        setTimeout(() => enviarCorreo(record), 800);
+      }
+      // Non-blocking sync to Google Sheets
+      enviarASheets(record);
+
+  } catch(e) {
+    showToast('❌ Error al guardar: ' + e.message, 'error');
+    console.error('guardarFormulario error:', e);
+  }
+}
+
+// =========================================================
+// HISTORIAL
+// =========================================================
+function getEstadoColor(estado) {
+  if (estado === 'APROBADO') return '#1b5e20';
+  if (estado === 'APROBADO CON OPORTUNIDAD DE MEJORA') return '#e65100';
+  return '#b71c1c';
+}
+function getPctBarColor(pct) {
+  if (pct >= 90) return '#2e7d32';
+  if (pct >= 85) return '#ff8f00';
+  return '#c62828';
+}
+
+function renderHistorial() {
+  let db = getDB();
+  const pdvFilter = document.getElementById('h_pdv_filter').value;
+  const desde = document.getElementById('h_desde').value;
+  const hasta = document.getElementById('h_hasta').value;
+
+  // Populate PDV filter
+  const pdvs = [...new Set(db.map(r => r.pdv))].sort();
+  const sel = document.getElementById('h_pdv_filter');
+  const currentVal = sel.value;
+  sel.innerHTML = '<option value="">Todos los PDV</option>' + pdvs.map(p => `<option value="${p}" ${p===currentVal?'selected':''}>${p}</option>`).join('');
+
+  if (pdvFilter) db = db.filter(r => r.pdv === pdvFilter);
+  if (desde) db = db.filter(r => r.fecha >= desde);
+  if (hasta) db = db.filter(r => r.fecha <= hasta);
+  db.sort((a,b) => b.fecha.localeCompare(a.fecha) || b.savedAt.localeCompare(a.savedAt));
+
+  // Summary
+  const resEl = document.getElementById('historial-resumen');
+  if (db.length > 0) {
+    const avg = db.reduce((s,r) => s + r.pct, 0) / db.length;
+    const aprobados = db.filter(r => r.estado === 'APROBADO').length;
+    resEl.innerHTML = `
+      <div style="background:#e8f5e9;border-radius:8px;padding:12px 18px;flex:1;min-width:140px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#1b5e20;">${db.length}</div>
+        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.4px;">Auditorías</div>
+      </div>
+      <div style="background:#fff3e0;border-radius:8px;padding:12px 18px;flex:1;min-width:140px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#e65100;">${avg.toFixed(1)}%</div>
+        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.4px;">Promedio</div>
+      </div>
+      <div style="background:#e8eaf6;border-radius:8px;padding:12px 18px;flex:1;min-width:140px;text-align:center;">
+        <div style="font-size:24px;font-weight:800;color:#283593;">${aprobados}</div>
+        <div style="font-size:11px;color:#555;text-transform:uppercase;letter-spacing:.4px;">Aprobados</div>
+      </div>
+    `;
+  } else { resEl.innerHTML = ''; }
+
+  const container = document.getElementById('historial-container');
+  if (db.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📋</div><h3>Sin resultados</h3><p>No hay auditorías que coincidan con los filtros.</p></div>`;
+    return;
+  }
+
+  const allDb = getDB();
+  container.innerHTML = db.map(r => renderAuditoriaCard(r, allDb)).join('');
+}
+
+function renderAuditoriaCard(r, allDb) {
+  const pctColor  = getPctBarColor(r.pct);
+  const estColor  = getEstadoColor(r.estado);
+  const estadoClass = r.pct >= 90 ? 'status-aprobado' : r.pct >= 85 ? 'status-mejora' : 'status-no-aprobado';
+
+  const hist = allDb.filter(x => x.pdv === r.pdv).sort((a,b) => a.fecha.localeCompare(b.fecha));
+  const histRows = hist.map(h => `
+    <tr style="${h.id===r.id?'background:#e8eaf6;font-weight:700;':''}">
+      <td>${formatFecha(h.fecha)}</td>
+      <td style="text-align:center">${h.puntajeTotal} / ${MAX_TOTAL}</td>
+      <td style="text-align:center;font-weight:700;color:${getPctBarColor(h.pct)}">${formatPct(h.pct)}%</td>
+      <td style="font-size:11px;font-weight:700;color:${getEstadoColor(h.estado)}">${h.estado}</td>
+    </tr>`).join('');
+
+  const metaFields = [
+    ['PDV', r.pdv], ['Fecha', formatFecha(r.fecha)],
+    ['Hora', formatHora(r.hora) || '—'], ['Auditor', r.auditor],
+    ['Tipo de PDV', r.tipoPdv || '—'], ['Modalidad', r.modalidad || '—'],
+    ['Manager', r.admin || '—'], ['Jefe de Cocina', r.jefeCocina || '—'],
+    ['Coordinador Zona', r.coordinadorZona || '—'], ['Persona que Recibe', r.receptor || '—'],
+  ];
+
+  const itemsHTML = r.items.map(it => {
+    const sc = it.calificacion==='cumple'?'score-full':it.calificacion==='parcial'?'score-partial':'score-zero';
+    const st = it.calificacion==='cumple'?'CUMPLE':it.calificacion==='parcial'?'CUMPLE PARC.':(it.calificacion?'NO CUMPLE':'S/C');
+    return `<tr>
+      <td style="text-align:center;font-weight:700;color:#1e6b3e">${it.id}</td>
+      <td><div style="font-weight:600;font-size:13px">${it.nombre}</div>${it.obs?`<div style="font-size:11px;color:#666;margin-top:2px;font-style:italic">${it.obs.replace(/</g,'&lt;')}</div>`:''}</td>
+      <td style="text-align:center;color:#888">${it.maxPts}</td>
+      <td style="text-align:center"><span class="score-pill ${sc}">${st}</span></td>
+      <td style="text-align:center;font-weight:700">${it.puntaje}</td>
+    </tr>`;
+  }).join('');
+
+  return `
+  <div style="border:1px solid #e0e0e0;border-radius:12px;margin-bottom:16px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,.07);">
+    <!-- CARD HEADER — always visible -->
+    <div onclick="toggleHistCard('${r.id}')" style="cursor:pointer;background:#0a0d1a;color:white;padding:14px 18px;display:flex;flex-wrap:wrap;align-items:center;gap:10px;user-select:none;">
+      <div style="flex:1;min-width:180px;">
+        <div style="font-size:15px;font-weight:800;letter-spacing:.3px;">🍽️ ${r.pdv}</div>
+        <div style="font-size:12px;color:#90caf9;margin-top:2px;">${formatFecha(r.fecha)}${r.hora?' · '+r.hora:''} &nbsp;·&nbsp; Auditor: ${r.auditor}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <div style="text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:${pctColor}">${formatPct(r.pct)}%</div>
+          <div style="font-size:10px;color:#aaa;text-transform:uppercase;">Cumplimiento</div>
+        </div>
+        <div style="text-align:center;">
+          <div style="font-size:20px;font-weight:800;color:white">${r.puntajeTotal}<span style="font-size:13px;color:#aaa"> /${MAX_TOTAL}</span></div>
+          <div style="font-size:10px;color:#aaa;text-transform:uppercase;">Puntaje</div>
+        </div>
+        <span class="status-badge ${estadoClass}" style="font-size:11px;">${r.estado}</span>
+        <span id="hchevron-${r.id}" style="font-size:18px;color:#90caf9;transition:transform .2s;">▼</span>
+      </div>
+    </div>
+
+    <!-- CARD BODY — collapsible -->
+    <div id="hbody-${r.id}" style="display:none;padding:16px;background:#fff;">
+
+      <!-- META GRID -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-header">Información General</div>
+        <div class="card-body">
+          <div class="informe-meta-grid">
+            ${metaFields.map(([l,v]) => `<div class="meta-item"><div class="meta-label">${l}</div><div class="meta-val">${v}</div></div>`).join('')}
+          </div>
+        </div>
+      </div>
+
+      <!-- RESULTADO -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-header">Resultado Global</div>
+        <div class="result-box">
+          <div class="result-item"><div class="val" style="color:#1e6b3e">${r.puntajeTotal}</div><div class="lbl">Pts Obtenidos</div></div>
+          <div class="result-divider"></div>
+          <div class="result-item"><div class="val" style="color:#546e7a">${MAX_TOTAL}</div><div class="lbl">Pts Máximos</div></div>
+          <div class="result-divider"></div>
+          <div class="result-item"><div class="val" style="color:${pctColor}">${formatPct(r.pct)}%</div><div class="lbl">Cumplimiento</div></div>
+          <div class="result-divider"></div>
+          <div class="result-item"><span class="status-badge ${estadoClass}">${r.estado}</span></div>
+        </div>
+      </div>
+
+      <!-- ITEMS TABLE -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-header">Detalle por Ítem</div>
+        <div class="card-body" style="padding:0;overflow-x:auto">
+          <table class="informe-items-table">
+            <thead><tr>
+              <th style="width:36px;text-align:center">Nº</th>
+              <th>Ítem / Observación</th>
+              <th style="width:55px;text-align:center">Max</th>
+              <th style="width:175px">Calificación</th>
+              <th style="width:55px;text-align:center">Pts</th>
+            </tr></thead>
+            <tbody>${itemsHTML}</tbody>
+            <tfoot><tr style="background:#1e6b3e;color:white;font-weight:700;">
+              <td colspan="2" style="padding:10px 12px">TOTAL</td>
+              <td style="text-align:center;padding:10px 12px">${MAX_TOTAL}</td>
+              <td></td>
+              <td style="text-align:center;padding:10px 12px">${r.puntajeTotal} — ${formatPct(r.pct)}%</td>
+            </tr></tfoot>
+          </table>
+        </div>
+      </div>
+
+      <!-- HISTÓRICO PDV -->
+      ${hist.length > 1 ? `
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-header">Histórico del PDV: ${r.pdv}</div>
+        <div class="card-body" style="padding:0;overflow-x:auto">
+          <table class="hist-table">
+            <thead><tr><th>Fecha</th><th>Puntaje</th><th>Cumplimiento</th><th>Estado</th></tr></thead>
+            <tbody>${histRows}</tbody>
+          </table>
+        </div>
+      </div>` : ''}
+
+      <!-- HALLAZGOS -->
+      ${r.hallazgo ? `<div class="card" style="margin-bottom:12px;border-left:4px solid #bf360c"><div class="card-header" style="background:#bf360c">Hallazgos</div><div class="card-body"><p style="white-space:pre-line;font-size:13px;line-height:1.7">${r.hallazgo.replace(/</g,'&lt;')}</p></div></div>` : ''}
+
+      <!-- RETROALIMENTACIÓN -->
+      ${r.retroalimentacion ? `<div class="card" style="margin-bottom:12px;border-left:4px solid #1565c0"><div class="card-header" style="background:#1565c0">Retroalimentación / Capacitación Ejecutada</div><div class="card-body"><p style="white-space:pre-line;font-size:13px;line-height:1.7">${r.retroalimentacion.replace(/</g,'&lt;')}</p></div></div>` : ''}
+
+      <!-- NOVEDADES -->
+      ${r.novedades ? `<div class="card" style="margin-bottom:12px;border-left:4px solid #e65100"><div class="card-header" style="background:#e65100">Novedades y Acciones Correctivas con Producto</div><div class="card-body"><p style="white-space:pre-line;font-size:13px;line-height:1.7">${r.novedades.replace(/</g,'&lt;')}</p></div></div>` : ''}
+
+      <!-- FOTOS (cargadas desde IndexedDB al abrir la tarjeta) -->
+      <div class="card" style="margin-bottom:12px;">
+        <div class="card-header">Evidencias Fotográficas</div>
+        <div class="card-body">
+          <div id="hfotos-${r.id}" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;">
+            <p style="font-size:12px;color:#888">Abre la tarjeta para cargar las fotos...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCIONES -->
+      <div class="no-print" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+        <button class="btn btn-primary btn-sm" onclick="verInforme('${r.id}')">📄 Ver en Informe</button>
+        <button class="btn btn-amber btn-sm" onclick="imprimirPDFById('${r.id}')">🖨️ Imprimir / PDF</button>
+        <button class="btn btn-secondary btn-sm" onclick="abrirModalHallazgo('${r.id}')">📌 Hallazgo</button>
+        <button class="btn btn-danger btn-sm" onclick="confirmarEliminar('${r.id}')">✕ Eliminar</button>
+      </div>
+      <div style="margin-top:8px;color:#bbb;font-size:10px;">ID: ${r.id} · Guardado: ${new Date(r.savedAt).toLocaleString('es-CO')}</div>
+    </div>
+  </div>`;
+}
+
+async function toggleHistCard(id) {
+  const body    = document.getElementById('hbody-' + id);
+  const chevron = document.getElementById('hchevron-' + id);
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display    = open ? 'none' : 'block';
+  chevron.style.transform = open ? '' : 'rotate(180deg)';
+  // Cargar fotos desde IDB si se está abriendo
+  if (!open) {
+    const fotoGrid = document.getElementById('hfotos-' + id);
+    if (fotoGrid && fotoGrid.childElementCount === 0) {
+      const fotos = await obtenerFotosIDB(id);
+      if (fotos.length > 0) {
+        fotoGrid.innerHTML = fotos.map((s,i) => `<img src="${s}" alt="Foto ${i+1}" style="width:100%;height:120px;object-fit:cover;border-radius:6px;cursor:pointer" onclick="this.style.maxWidth=this.style.maxWidth?'':'100vw'">`).join('');
+      } else {
+        fotoGrid.innerHTML = '<p style="font-size:12px;color:#888">Sin fotos</p>';
+      }
+    }
+  }
+}
+
+// Allow printing a specific audit directly from history
+function imprimirPDFById(id) {
+  // Switch to informe tab, select the record, then print
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('pane-informe').classList.add('active');
+  document.querySelector('.tab-btn[onclick*="informe"]').classList.add('active');
+  const sel = document.getElementById('informe_select');
+  if (sel) {
+    sel.value = id;
+    renderInforme();
+    setTimeout(() => imprimirPDF(), 300);
+  }
+}
+
+
+function renderInformeSelector() {
+  const db = getDB();
+  db.sort((a,b) => b.fecha.localeCompare(a.fecha));
+  const sel = document.getElementById('informe_select');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">-- Selecciona una auditoría --</option>' +
+    db.map(r => `<option value="${r.id}">${r.pdv} — ${formatFecha(r.fecha)} (${formatPct(r.pct)}%)</option>`).join('');
+  if (cur) sel.value = cur;
+}
+
+async function renderInforme() {
+  const id = document.getElementById('informe_select').value;
+  const container = document.getElementById('informe-content');
+  if (!id) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">📄</div><h3>Selecciona una auditoría</h3><p>Elige una auditoría del selector de arriba para ver su informe.</p></div>`;
+    return;
+  }
+  const db = getDB();
+  const r = db.find(x => x.id === id);
+  if (!r) { container.innerHTML = '<p>No encontrado.</p>'; return; }
+  // Cargar fotos desde IndexedDB
+  if (!r.fotos || r.fotos.length === 0) r.fotos = await obtenerFotosIDB(r.id);
+
+  const estadoClass = r.pct >= 90 ? 'status-aprobado' : r.pct >= 85 ? 'status-mejora' : 'status-no-aprobado';
+  const bannerClass = r.pct >= 90 ? 'pdf-banner-aprobado' : r.pct >= 85 ? 'pdf-banner-mejora' : 'pdf-banner-noaprobado';
+  const estadoBadgeClass = r.pct >= 90 ? 'pdf-estado-aprobado' : r.pct >= 85 ? 'pdf-estado-mejora' : 'pdf-estado-noaprobado';
+
+  const hist = db.filter(x => x.pdv === r.pdv).sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+  const histRows = hist.map(h => `
+    <tr class="${h.id===r.id?'pdf-hist-current':''}">
+      <td>${formatFecha(h.fecha)}</td>
+      <td style="text-align:center">${h.puntajeTotal} / ${MAX_TOTAL}</td>
+      <td style="text-align:center;font-weight:700;color:${getPctBarColor(h.pct)}">${formatPct(h.pct)}%</td>
+      <td style="font-size:10px;font-weight:700;color:${getEstadoColor(h.estado)}">${h.estado}</td>
+    </tr>`).join('');
+
+  const itemRows = r.items.map(it => {
+    const pillClass = it.calificacion === 'cumple' ? 'pdf-pill-cumple' : it.calificacion === 'parcial' ? 'pdf-pill-parcial' : 'pdf-pill-nocumple';
+    const pillText = it.calificacion === 'cumple' ? 'CUMPLE' : it.calificacion === 'parcial' ? 'CUMPLE PARCIALMENTE' : (it.calificacion ? 'NO CUMPLE' : 'S/C');
+    const obsHtml = it.obs ? `<div class="pdf-item-obs">${it.obs.replace(/</g,'&lt;')}</div>` : '';
+    return `<tr>
+      <td class="pdf-num-col">${it.id}</td>
+      <td><div class="pdf-item-name">${it.nombre}</div>${obsHtml}</td>
+      <td class="pdf-max">${it.maxPts}</td>
+      <td style="text-align:center"><span class="pdf-pill ${pillClass}">${pillText}</span></td>
+      <td class="pdf-pts">${it.puntaje}</td>
+    </tr>`;
+  }).join('');
+
+  const metaFields = [
+    ['PDV', r.pdv], ['Fecha', formatFecha(r.fecha)],
+    ['Hora', formatHora(r.hora) || '—'], ['Auditor', r.auditor],
+    ['Tipo de PDV', r.tipoPdv || '—'], ['Modalidad', r.modalidad || '—'],
+    ['Manager', r.admin || '—'], ['Jefe de Cocina', r.jefeCocina || '—'],
+    ['Coordinador Zona', r.coordinadorZona || '—'], ['Persona que Recibe', r.receptor || '—'],
+  ];
+
+  const generado = new Date().toLocaleString('es-CO');
+
+  // ── SCREEN VIEW ──
+  const screenHTML = `
+    <div class="card">
+      <div class="card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>INFORME DE AUDITORÍA INTERNA DE COCINA</span>
+        <span style="font-size:11px;opacity:.85">${formatFecha(r.fecha)}${r.hora ? ' — ' + formatHora(r.hora) : ''}</span>
+      </div>
+      <div class="card-body">
+        <div class="informe-meta-grid">
+          ${metaFields.map(([l,v]) => `<div class="meta-item"><div class="meta-label">${l}</div><div class="meta-val">${v}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Resultado Global</div>
+      <div class="result-box">
+        <div class="result-item"><div class="val" style="color:#1e6b3e">${r.puntajeTotal}</div><div class="lbl">Pts Obtenidos</div></div>
+        <div class="result-divider"></div>
+        <div class="result-item"><div class="val" style="color:#546e7a">75</div><div class="lbl">Pts Esperados</div></div>
+        <div class="result-divider"></div>
+        <div class="result-item"><div class="val" style="color:${getPctBarColor(r.pct)}">${formatPct(r.pct)}%</div><div class="lbl">Cumplimiento</div></div>
+        <div class="result-divider"></div>
+        <div class="result-item"><span class="status-badge ${estadoClass}">${r.estado}</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Detalle por Ítem</div>
+      <div class="card-body" style="padding:0;overflow-x:auto">
+        <table class="informe-items-table">
+          <thead><tr>
+            <th style="width:36px;text-align:center">Nº</th><th>Ítem / Observación</th>
+            <th style="width:55px;text-align:center">Max</th><th style="width:175px">Calificación</th>
+            <th style="width:55px;text-align:center">Pts</th>
+          </tr></thead>
+          <tbody>${r.items.map(it => {
+            const sc = it.calificacion==='cumple'?'score-full':it.calificacion==='parcial'?'score-partial':'score-zero';
+            const st = it.calificacion==='cumple'?'CUMPLE':it.calificacion==='parcial'?'CUMPLE PARC.':(it.calificacion?'NO CUMPLE':'S/C');
+            return `<tr>
+              <td style="text-align:center;font-weight:700;color:#1e6b3e">${it.id}</td>
+              <td><div style="font-weight:600;font-size:13px">${it.nombre}</div>${it.obs?`<div style="font-size:11px;color:#666;margin-top:2px;font-style:italic">${it.obs.replace(/</g,'&lt;')}</div>`:''}</td>
+              <td style="text-align:center;color:#888">${it.maxPts}</td>
+              <td style="text-align:center"><span class="score-pill ${sc}">${st}</span></td>
+              <td style="text-align:center;font-weight:700">${it.puntaje}</td>
+            </tr>`;
+          }).join('')}
+          </tbody>
+          <tfoot><tr style="background:#1e6b3e;color:white;font-weight:700;">
+            <td colspan="2" style="padding:10px 12px">TOTAL</td>
+            <td style="text-align:center;padding:10px 12px">${MAX_TOTAL}</td><td></td>
+            <td style="text-align:center;padding:10px 12px">${r.puntajeTotal} — ${formatPct(r.pct)}%</td>
+          </tr></tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">Histórico del PDV: ${r.pdv}</div>
+      <div class="card-body" style="padding:0;overflow-x:auto">
+        <table class="hist-table">
+          <thead><tr><th>Fecha</th><th>Puntaje</th><th>Cumplimiento</th><th>Estado</th></tr></thead>
+          <tbody>${histRows}</tbody>
+        </table>
+      </div>
+    </div>
+    ${r.hallazgo ? `<div class="card" style="border-left:4px solid #e65100"><div class="card-header" style="background:#bf360c">Hallazgos</div><div class="card-body"><p style="white-space:pre-line;font-size:13px;line-height:1.7">${r.hallazgo.replace(/</g,'&lt;')}</p></div></div>` : ''}
+    ${r.retroalimentacion ? `<div class="card" style="border-left:4px solid #1565c0"><div class="card-header" style="background:#1565c0">Retroalimentación / Capacitación Ejecutada</div><div class="card-body"><p style="white-space:pre-line;font-size:13px;line-height:1.7">${r.retroalimentacion.replace(/</g,'&lt;')}</p></div></div>` : ''}
+    ${r.novedades ? `<div class="card" style="border-left:4px solid #e65100"><div class="card-header" style="background:#e65100">Novedades y Acciones Correctivas con Producto</div><div class="card-body"><p style="white-space:pre-line;font-size:13px;line-height:1.7">${r.novedades.replace(/</g,'&lt;')}</p></div></div>` : ''}
+    ${r.fotos && r.fotos.length > 0 ? `<div class="card"><div class="card-header">Evidencias Fotográficas (${r.fotos.length})</div><div class="card-body"><div class="print-photo-grid">${r.fotos.map((s,i)=>`<img src="${s}" alt="Foto ${i+1}">`).join('')}</div></div></div>` : ''}
+    <div class="no-print" style="margin-top:6px;color:#888;font-size:11px">Generado el ${generado} — ID: ${r.id}</div>
+  `;
+
+  // ── PDF / PRINT VIEW ──
+  const pdfHTML = `
+    <div class="pdf-wrap">
+      <!-- COVER HEADER -->
+      <div class="pdf-cover">
+        <div class="pdf-cover-brand">
+          <div class="pdf-cover-icon">🍽️</div>
+          <div>
+            <div class="pdf-cover-company">Temple Colombia</div>
+            <div class="pdf-cover-title">Auditoría Interna de Cocina</div>
+            <div class="pdf-cover-subtitle">Chequeo Operativo</div>
+          </div>
+        </div>
+        <div class="pdf-cover-right">
+          <div class="pdf-cover-pdv">${r.pdv}</div>
+          <div class="pdf-cover-date">${formatFecha(r.fecha)}${r.hora ? ' · ' + formatHora(r.hora) : ''}</div>
+        </div>
+      </div>
+
+      <!-- RESULT BANNER -->
+      <div class="pdf-result-banner ${bannerClass}">
+        <div class="pdf-result-col">
+          <span class="pdf-result-num">${formatPct(r.pct)}%</span>
+          <span class="pdf-result-lbl">Cumplimiento</span>
+        </div>
+        <div class="pdf-result-sep"></div>
+        <div class="pdf-result-col">
+          <span class="pdf-result-num">${r.puntajeTotal}<span style="font-size:18px;font-weight:400"> / ${MAX_TOTAL}</span></span>
+          <span class="pdf-result-lbl">Puntaje Obtenido</span>
+        </div>
+        <div class="pdf-result-sep"></div>
+        <div class="pdf-result-estado-col">
+          <span class="pdf-result-estado-badge ${estadoBadgeClass}">${r.estado}</span>
+        </div>
+      </div>
+
+      <div class="pdf-body">
+
+        <!-- META -->
+        <div class="pdf-section pdf-no-break">
+          <div class="pdf-section-title">Información del Punto de Venta</div>
+          <div class="pdf-meta-grid">
+            ${metaFields.map(([l,v]) => `<div class="pdf-meta-row"><span class="pdf-meta-label">${l}</span><span class="pdf-meta-val">${v}</span></div>`).join('')}
+          </div>
+        </div>
+
+        <!-- ITEMS TABLE -->
+        <div class="pdf-section">
+          <div class="pdf-section-title">Detalle de Evaluación</div>
+          <table class="pdf-items-table">
+            <thead><tr>
+              <th class="ctr" style="width:26px">Nº</th>
+              <th>Ítem Evaluado / Observación</th>
+              <th class="ctr" style="width:36px">Max</th>
+              <th class="ctr" style="width:130px">Calificación</th>
+              <th class="ctr" style="width:36px">Pts</th>
+            </tr></thead>
+            <tbody>${itemRows}</tbody>
+            <tfoot><tr>
+              <td colspan="2" style="padding:7px 10px">TOTAL AUDITORÍA</td>
+              <td style="text-align:center">${MAX_TOTAL}</td>
+              <td style="text-align:center">${formatPct(r.pct)}%</td>
+              <td style="text-align:center">${r.puntajeTotal}</td>
+            </tr></tfoot>
+          </table>
+        </div>
+
+        <!-- HISTÓRICO -->
+        <div class="pdf-section pdf-no-break">
+          <div class="pdf-section-title">Histórico del PDV: ${r.pdv}</div>
+          <table class="pdf-hist-table">
+            <thead><tr><th>Fecha</th><th style="text-align:center">Puntaje</th><th style="text-align:center">Cumplimiento</th><th>Estado</th></tr></thead>
+            <tbody>${histRows}</tbody>
+          </table>
+        </div>
+
+        ${r.hallazgo ? `
+        <!-- HALLAZGOS -->
+        <div class="pdf-hallazgos pdf-no-break">
+          <div class="pdf-hallazgos-title">⚠ Hallazgos</div>
+          <div class="pdf-hallazgos-body">${r.hallazgo.replace(/</g,'&lt;')}</div>
+        </div>` : ''}
+
+        ${r.retroalimentacion ? `
+        <!-- RETROALIMENTACIÓN -->
+        <div class="pdf-retro pdf-no-break">
+          <div class="pdf-retro-title">✏ Retroalimentación / Capacitación Ejecutada</div>
+          <div class="pdf-retro-body">${r.retroalimentacion.replace(/</g,'&lt;')}</div>
+        </div>` : ''}
+
+        ${r.fotos && r.fotos.length > 0 ? `
+        <!-- PHOTOS -->
+        <div class="pdf-section">
+          <div class="pdf-section-title">Evidencias Fotográficas (${r.fotos.length})</div>
+          <div class="pdf-photo-grid">
+            ${r.fotos.map((s,i) => `<img src="${s}" alt="Foto ${i+1}">`).join('')}
+          </div>
+        </div>` : ''}
+
+      </div><!-- /pdf-body -->
+
+      <!-- FOOTER -->
+      <div class="pdf-footer">
+        <div class="pdf-footer-left">
+          Generado el ${generado}<br>
+          Documento confidencial · Uso interno
+        </div>
+        <div class="pdf-footer-right">
+          <div class="pdf-footer-brand">Temple Colombia</div>
+          Auditoría Interna de Cocina
+        </div>
+      </div>
+
+    </div><!-- /pdf-wrap -->
+  `;
+
+  container.innerHTML = screenHTML + pdfHTML;
+}
+
+// =========================================================
+// EXPORT EXCEL (CSV)
+// =========================================================
+// =========================================================
+// IMPRIMIR PDF — ventana dedicada
+// =========================================================
+async function imprimirPDF() {
+  const id = document.getElementById('informe_select').value;
+  if (!id) { showToast('Selecciona una auditoría primero.', 'error'); return; }
+  const db = getDB();
+  const r = db.find(x => x.id === id);
+  if (!r) return;
+  // Cargar fotos desde IndexedDB
+  if (!r.fotos || r.fotos.length === 0) r.fotos = await obtenerFotosIDB(r.id);
+
+  const bannerBg   = r.pct >= 90 ? '#1b4332' : r.pct >= 85 ? '#e65100' : '#b71c1c';
+  const generado   = new Date().toLocaleString('es-CO');
+
+  const metaFields = [
+    ['PDV', r.pdv], ['Fecha', formatFecha(r.fecha)],
+    ['Hora', formatHora(r.hora) || '—'], ['Auditor', r.auditor],
+    ['Tipo de PDV', r.tipoPdv || '—'], ['Modalidad', r.modalidad || '—'],
+    ['Manager', r.admin || '—'], ['Jefe de Cocina', r.jefeCocina || '—'],
+    ['Coordinador Zona', r.coordinadorZona || '—'], ['Persona que Recibe', r.receptor || '—'],
+  ];
+
+  const hist = db.filter(x => x.pdv === r.pdv).sort((a,b) => a.fecha.localeCompare(b.fecha));
+
+  const histRows = hist.map(h => `
+    <tr style="${h.id===r.id ? 'background:#d8f3dc!important;font-weight:700;' : ''}">
+      <td>${formatFecha(h.fecha)}</td>
+      <td style="text-align:center">${h.puntajeTotal} / ${MAX_TOTAL}</td>
+      <td style="text-align:center;font-weight:700;color:${getPctBarColor(h.pct)}">${formatPct(h.pct)}%</td>
+      <td style="font-size:10px;font-weight:700;color:${getEstadoColor(h.estado)}">${h.estado}</td>
+    </tr>`).join('');
+
+  const itemRows = r.items.map(it => {
+    const rowBg    = it.calificacion==='cumple' ? '#f0faf4' : it.calificacion==='parcial' ? '#fffde7' : it.calificacion==='nocumple' ? '#fff3f3' : '#f9f9f9';
+    const rowBd    = it.calificacion==='cumple' ? '#43a047' : it.calificacion==='parcial' ? '#fbc02d' : it.calificacion==='nocumple' ? '#e53935' : '#bdbdbd';
+    const pillBg   = it.calificacion==='cumple' ? '#95d5b2' : it.calificacion==='parcial' ? '#fff176' : it.calificacion==='nocumple' ? '#ffcdd2' : '#e0e0e0';
+    const pillColor= it.calificacion==='cumple' ? '#1b5e20' : it.calificacion==='parcial' ? '#e65100' : it.calificacion==='nocumple' ? '#b71c1c' : '#555';
+    const pillText = it.calificacion==='cumple' ? '✔ CUMPLE' : it.calificacion==='parcial' ? '◑ CUMPLE PARCIALMENTE' : it.calificacion==='nocumple' ? '✖ NO CUMPLE' : '— S/C';
+    const numColor = it.calificacion==='cumple' ? '#2e7d32' : it.calificacion==='parcial' ? '#f57f17' : it.calificacion==='nocumple' ? '#c62828' : '#888';
+    return `<tr style="background:${rowBg};border-left:4px solid ${rowBd};border-bottom:1px solid rgba(0,0,0,.05)">
+      <td style="text-align:center;font-weight:800;color:${numColor};font-size:12px;padding:7px 8px">${it.id}</td>
+      <td style="vertical-align:top;padding:7px 10px">
+        <div style="font-weight:600;font-size:11px;color:#0d2010">${it.nombre}</div>
+        ${it.obs ? `<div style="font-size:10px;color:#555;margin-top:3px;font-style:italic;line-height:1.5">${it.obs.replace(/</g,'&lt;')}</div>` : ''}
+      </td>
+      <td style="text-align:center;color:#888;font-weight:600;padding:7px 8px">${it.maxPts}</td>
+      <td style="text-align:center;padding:7px 8px"><span style="display:inline-block;padding:3px 9px;border-radius:9px;font-size:9px;font-weight:700;background:${pillBg};color:${pillColor}">${pillText}</span></td>
+      <td style="text-align:center;font-weight:800;color:${numColor};font-size:12px;padding:7px 8px">${it.puntaje}</td>
+    </tr>`;
+  }).join('');
+
+  const tagsHtml = [r.tipoPdv, r.modalidad].filter(Boolean).map(t =>
+    `<span style="background:rgba(255,255,255,.35);border:1px solid rgba(255,255,255,.75);color:#ffffff;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;letter-spacing:.5px">${t}</span>`
+  ).join(' ');
+
+  const hallazgosHtml = r.hallazgo ? `
+    <div style="margin-bottom:22px">
+      <div style="display:inline-block;background:#e65100;color:white;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px 5px 36px;border-radius:0 20px 20px 0;margin-left:-36px;margin-bottom:12px">⚠ Hallazgos</div>
+      <div style="background:linear-gradient(135deg,#fff8f2,#fff3e0);border-left:5px solid #f57c00;border-radius:0 8px 8px 0;padding:14px 18px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#e65100;margin-bottom:8px">Observaciones y No Conformidades</div>
+        <div style="font-size:11px;line-height:1.75;white-space:pre-line;color:#3e2723">${r.hallazgo.replace(/</g,'&lt;')}</div>
+      </div>
+    </div>` : '';
+
+  const retroHtml = r.retroalimentacion ? `
+    <div style="margin-bottom:22px">
+      <div style="display:inline-block;background:#1b4332;color:white;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px 5px 36px;border-radius:0 20px 20px 0;margin-left:-36px;margin-bottom:12px">✏ Retroalimentación / Capacitación</div>
+      <div style="background:linear-gradient(135deg,#f0faf4,#d8f3dc);border-left:5px solid #1b4332;border-radius:0 8px 8px 0;padding:14px 18px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#1b4332;margin-bottom:8px">Acciones de Mejora y Capacitación</div>
+        <div style="font-size:11px;line-height:1.75;white-space:pre-line;color:#081c0f">${r.retroalimentacion.replace(/</g,'&lt;')}</div>
+      </div>
+    </div>` : '';
+
+  const novedadesHtml = r.novedades ? `
+    <div style="margin-bottom:22px">
+      <div style="display:inline-block;background:#e65100;color:white;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px 5px 36px;border-radius:0 20px 20px 0;margin-left:-36px;margin-bottom:12px">📦 Novedades y Acciones Correctivas con Producto</div>
+      <div style="background:linear-gradient(135deg,#fff8f4,#fff3e0);border-left:5px solid #e65100;border-radius:0 8px 8px 0;padding:14px 18px">
+        <div style="font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#e65100;margin-bottom:8px">Novedades con Producto y Acciones Tomadas</div>
+        <div style="font-size:11px;line-height:1.75;white-space:pre-line;color:#3e1f00">${r.novedades.replace(/</g,'&lt;')}</div>
+      </div>
+    </div>` : '';
+
+  const fotosHtml = (r.fotos && r.fotos.length > 0) ? `
+    <div style="margin-bottom:22px">
+      <div style="display:inline-block;background:#071a0f;color:white;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px 5px 36px;border-radius:0 20px 20px 0;margin-left:-36px;margin-bottom:14px">📷 Evidencias Fotográficas (${r.fotos.length})</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
+        ${r.fotos.map((s,i) => `
+          <div style="break-inside:avoid;page-break-inside:avoid;">
+            <img src="${s}" alt="Foto ${i+1}" style="width:100%;height:auto;max-height:260px;object-fit:contain;border-radius:10px;border:2px solid #95d5b2;box-shadow:0 3px 10px rgba(0,0,0,.15);display:block;">
+            <div style="text-align:center;font-size:9px;color:#666;margin-top:4px;">Foto ${i+1}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : '';
+
+  // ── BUILD PDF CONTENT (body fragment, all styles inline or scoped) ──
+  const pdfCSS = `
+    #pdf-root { display:none; font-family:Arial,Helvetica,sans-serif; color:#0d2010; background:white;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact; color-adjust:exact; }
+    #pdf-root, #pdf-root * { box-sizing:border-box;
+      -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
+    #pdf-root table { width:100%; border-collapse:collapse; font-size:11px; }
+    #pdf-root .tbl-head tr { background:linear-gradient(90deg,#071a0f,#1b4332) !important; color:white !important; }
+    #pdf-root .tbl-head th { padding:9px 10px; text-align:left; font-size:10px; font-weight:700; letter-spacing:.4px; }
+    #pdf-root .tbl-head th.ctr { text-align:center; }
+    #pdf-root .tbl-foot tr { background:#071a0f !important; color:white !important; font-weight:700; }
+    #pdf-root .tbl-foot td { padding:9px 10px; font-size:11px; text-align:center; }
+    #pdf-root .hist-head tr { background:#1b4332 !important; color:white !important; }
+    #pdf-root .hist-head th { padding:8px 10px; font-size:10px; font-weight:700; text-align:left; }
+    #pdf-root .hist-body tr:nth-child(odd)  { background:#ffffff !important; }
+    #pdf-root .hist-body tr:nth-child(even) { background:#fff !important; }
+    #pdf-root .hist-body td { padding:7px 10px; border-bottom:1px solid #eee; font-size:11px; }
+    @media print {
+      @page { size:A4; margin:0; }
+      body > *:not(#pdf-root) { display:none !important; }
+      #pdf-root { display:block !important; }
+      #pdf-root, #pdf-root * { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }
+    }
+  `;
+
+  const pdfBody = `
+    <!-- COVER -->
+    <div style="background:linear-gradient(135deg,#071a0f 0%,#1b4332 55%,#2d6a4f 100%);color:white;padding:28px 36px 22px;display:flex;justify-content:space-between;align-items:flex-start;position:relative;overflow:hidden">
+      <div style="position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.08)"></div>
+      <div style="display:flex;align-items:center;gap:14px;z-index:1">
+        <div style="font-size:44px;line-height:1">🍽️</div>
+        <div>
+          <div style="font-size:10px;letter-spacing:2.5px;text-transform:uppercase;opacity:1;margin-bottom:4px">Temple Colombia</div>
+          <div style="font-size:22px;font-weight:800">Auditoría Interna de Cocina</div>
+          <div style="font-size:11px;opacity:.9;margin-top:4px">Chequeo Operativo de Cocina</div>
+        </div>
+      </div>
+      <div style="text-align:right;z-index:1">
+        <div style="font-size:19px;font-weight:800">${r.pdv}</div>
+        <div style="font-size:12px;opacity:1;margin-top:5px;color:#ffffff">${formatFecha(r.fecha)}${r.hora ? ' · ' + formatHora(r.hora) : ''}</div>
+        ${tagsHtml ? `<div style="display:flex;gap:6px;justify-content:flex-end;margin-top:8px">${tagsHtml}</div>` : ''}
+      </div>
+    </div>
+    <!-- RAINBOW STRIPE -->
+    <div style="height:5px;background:linear-gradient(90deg,#071a0f,#1b4332,#2d6a4f,#40916c,#74c69d,#40916c,#2d6a4f,#071a0f)"></div>
+    <!-- BANNER -->
+    <div style="background:${bannerBg};color:white;display:flex;align-items:stretch">
+      <div style="flex:1;text-align:center;padding:20px 10px">
+        <div style="font-size:38px;font-weight:900;line-height:1">${formatPct(r.pct)}%</div>
+        <div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;opacity:.8;margin-top:4px">Cumplimiento Total</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.25);margin:12px 0"></div>
+      <div style="flex:1;text-align:center;padding:20px 10px">
+        <div style="font-size:38px;font-weight:900;line-height:1">${r.puntajeTotal}<span style="font-size:17px;font-weight:400;opacity:.8"> / ${MAX_TOTAL}</span></div>
+        <div style="font-size:9px;letter-spacing:1.2px;text-transform:uppercase;opacity:.8;margin-top:4px">Puntaje Obtenido</div>
+      </div>
+      <div style="width:1px;background:rgba(255,255,255,.25);margin:12px 0"></div>
+      <div style="flex:2;display:flex;align-items:center;justify-content:center;padding:16px">
+        <span style="display:inline-block;padding:10px 28px;border-radius:22px;font-size:13px;font-weight:800;background:rgba(255,255,255,.2);border:2px solid rgba(255,255,255,.55);letter-spacing:.8px">${r.estado}</span>
+      </div>
+    </div>
+
+    <div style="padding:22px 36px 12px">
+
+      <!-- META -->
+      <div style="margin-bottom:22px">
+        <div style="display:inline-block;background:#1b4332;color:white;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px 5px 36px;border-radius:0 20px 20px 0;margin-left:-36px;margin-bottom:12px">📍 Información del Punto de Venta</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;border-radius:8px;overflow:hidden;border:1.5px solid #c5cae9">
+          ${metaFields.map(([l,v],i) => `<div style="display:flex;align-items:center;padding:8px 14px;border-bottom:1px solid #d8f3dc;gap:10px;background:${i%2===0?'#f0faf4':'#ffffff'}"><span style="font-size:9px;font-weight:800;color:#1b4332;text-transform:uppercase;letter-spacing:.6px;min-width:100px;flex-shrink:0">${l}</span><span style="font-size:12px;font-weight:600">${v}</span></div>`).join('')}
+        </div>
+      </div>
+
+      <!-- ITEMS -->
+      <div style="margin-bottom:22px">
+        <div style="display:inline-block;background:#071a0f;color:white;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px 5px 36px;border-radius:0 20px 20px 0;margin-left:-36px;margin-bottom:12px">📋 Detalle de Evaluación</div>
+        <table>
+          <thead class="tbl-head"><tr>
+            <th class="ctr" style="width:28px">Nº</th>
+            <th>Ítem Evaluado / Observación</th>
+            <th class="ctr" style="width:38px">Máx</th>
+            <th class="ctr" style="width:150px">Calificación</th>
+            <th class="ctr" style="width:38px">Pts</th>
+          </tr></thead>
+          <tbody>${itemRows}</tbody>
+          <tfoot class="tbl-foot"><tr>
+            <td colspan="2" style="text-align:left;padding:9px 10px;font-size:11px">▶ TOTAL AUDITORÍA</td>
+            <td>${MAX_TOTAL}</td><td>${formatPct(r.pct)}%</td><td>${r.puntajeTotal}</td>
+          </tr></tfoot>
+        </table>
+      </div>
+
+      <!-- HISTÓRICO -->
+      <div style="margin-bottom:22px">
+        <div style="display:inline-block;background:#1b4332;color:white;font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;padding:5px 14px 5px 36px;border-radius:0 20px 20px 0;margin-left:-36px;margin-bottom:12px">📈 Histórico del PDV: ${r.pdv}</div>
+        <table>
+          <thead class="hist-head"><tr>
+            <th>Fecha</th><th style="text-align:center">Puntaje</th><th style="text-align:center">Cumplimiento</th><th>Estado</th>
+          </tr></thead>
+          <tbody class="hist-body">${histRows}</tbody>
+        </table>
+      </div>
+
+      ${hallazgosHtml}
+      ${retroHtml}
+      ${novedadesHtml}
+      ${fotosHtml}
+
+    </div>
+
+    <!-- FOOTER -->
+    <div style="padding:11px 36px;background:linear-gradient(90deg,#071a0f,#1b4332);display:flex;justify-content:space-between;align-items:center;color:white">
+      <div style="font-size:9px;opacity:.85;line-height:1.7">Generado el ${generado}<br>Documento confidencial · Uso interno</div>
+      <div style="font-size:9px;opacity:.85;text-align:right;line-height:1.7"><div style="font-size:11px;font-weight:800;opacity:1">Temple Colombia</div>Auditoría Interna de Cocina</div>
+    </div>
+  `;
+
+  // Inject CSS into head
+  let styleEl = document.getElementById('_pdf_style');
+  if (!styleEl) { styleEl = document.createElement('style'); styleEl.id = '_pdf_style'; document.head.appendChild(styleEl); }
+  styleEl.textContent = pdfCSS;
+
+  // Inject PDF div into body
+  let root = document.getElementById('pdf-root');
+  if (!root) { root = document.createElement('div'); root.id = 'pdf-root'; document.body.appendChild(root); }
+  root.innerHTML = pdfBody;
+  root.style.display = 'block';
+
+  // Small delay so browser applies styles before opening print dialog
+  setTimeout(() => {
+    function cleanup() {
+      root.style.display = 'none';
+      root.innerHTML = '';
+      window.removeEventListener('afterprint', cleanup);
+    }
+    window.addEventListener('afterprint', cleanup);
+    // Fallback: hide after 4s in case afterprint doesn't fire (Safari iOS)
+    setTimeout(cleanup, 4000);
+    window.print();
+  }, 150);
+}
+
+function exportarConsolidado() {
+  let db = getDB();
+  const pdvFilter = document.getElementById('h_pdv_filter').value;
+  const desde = document.getElementById('h_desde').value;
+  const hasta = document.getElementById('h_hasta').value;
+  if (pdvFilter) db = db.filter(r => r.pdv === pdvFilter);
+  if (desde)     db = db.filter(r => r.fecha >= desde);
+  if (hasta)     db = db.filter(r => r.fecha <= hasta);
+  db.sort((a,b) => b.fecha.localeCompare(a.fecha) || b.savedAt.localeCompare(a.savedAt));
+
+  if (db.length === 0) { showToast('No hay auditorías para exportar.', 'error'); return; }
+
+  const esc = v => String(v === null || v === undefined ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const spacer = () => `<tr><td colspan="100%" style="border:none;background:white;padding:3px;"></td></tr>`;
+
+  const calLabel = cal => {
+    if (cal === 'cumple')    return 'CUMPLE';
+    if (cal === 'parcial')   return 'CUMPLE PARCIALMENTE';
+    if (cal === 'no_cumple') return 'NO CUMPLE';
+    return 'S/C';
+  };
+  const calColor = cal => {
+    if (cal === 'cumple')    return {bg:'#c8e6c9',fg:'#1b5e20'};
+    if (cal === 'parcial')   return {bg:'#ffe0b2',fg:'#e65100'};
+    if (cal === 'no_cumple') return {bg:'#ffcdd2',fg:'#b71c1c'};
+    return {bg:'#f5f5f5',fg:'#666'};
+  };
+  const isAprobado = r => r.pct >= 90;
+  const isMejora   = r => r.pct >= 85 && r.pct < 90;
+  const estadoFg   = r => isAprobado(r)?'#1b5e20':isMejora(r)?'#e65100':'#b71c1c';
+  const estadoBg   = r => isAprobado(r)?'#c8e6c9':isMejora(r)?'#ffe0b2':'#ffcdd2';
+
+  const th = (v,s='',extra='') => `<td ${extra} style="font-family:Calibri,Arial,sans-serif;font-size:9pt;padding:5px 8px;border:1px solid #90a4ae;font-weight:bold;vertical-align:middle;${s}">${esc(v)}</td>`;
+  const td = (v,s='') => `<td style="font-family:Calibri,Arial,sans-serif;font-size:9pt;padding:4px 8px;border:1px solid #cfd8dc;vertical-align:middle;${s}">${esc(v)}</td>`;
+  const hdr = (title,bg,fg='white',cols=20) => `<tr><td colspan="${cols}" style="font-family:Calibri,Arial,sans-serif;background-color:${bg};color:${fg};font-weight:bold;font-size:11pt;padding:7px 12px;border:1px solid ${bg};letter-spacing:.4px;">${title}</td></tr>`;
+
+  // ── RESUMEN TABLE (one row per audit) ──
+  const itemNames = db[0].items.map(it => it.nombre);
+  const numCols = 17 + itemNames.length;
+
+  const summaryRows = db.map((r,idx) => {
+    const ef = estadoFg(r), eb = estadoBg(r);
+    const itemCells = r.items.map(it => {
+      const cc = calColor(it.calificacion);
+      return td(calLabel(it.calificacion), `text-align:center;background-color:${cc.bg};color:${cc.fg};font-weight:bold;font-size:8pt;`);
+    }).join('');
+    const rowBg = idx%2===0?'#f9f9f9':'#ffffff';
+    return `<tr>
+      ${td(idx+1, `text-align:center;background-color:${rowBg};font-weight:bold;`)}
+      ${td(r.pdv,  `font-weight:bold;background-color:${rowBg};`)}
+      ${td(r.fecha, `background-color:${rowBg};`)}
+      ${td(r.hora||'—', `background-color:${rowBg};`)}
+      ${td(r.auditor, `background-color:${rowBg};`)}
+      ${td(r.admin||'—', `background-color:${rowBg};`)}
+      ${td(r.jefeCocina||'—', `background-color:${rowBg};`)}
+      ${td(r.coordinadorZona||'—', `background-color:${rowBg};`)}
+      ${td(r.receptor||'—', `background-color:${rowBg};`)}
+      ${td(r.tipoPdv||'—', `background-color:${rowBg};`)}
+      ${td(r.modalidad||'—', `background-color:${rowBg};`)}
+      ${td(r.puntajeTotal+'/'+MAX_TOTAL, `text-align:center;background-color:${rowBg};font-weight:bold;`)}
+      ${td(formatPct(r.pct)+'%', `text-align:center;background-color:${ef};color:white;font-weight:bold;font-size:10pt;`)}
+      ${td(r.estado, `text-align:center;background-color:${eb};color:${ef};font-weight:bold;font-size:8pt;`)}
+      ${itemCells}
+      ${td(r.hallazgo||'', `background-color:${rowBg};font-size:8pt;white-space:pre-wrap;`)}
+      ${td(r.retroalimentacion||'', `background-color:${rowBg};font-size:8pt;white-space:pre-wrap;`)}
+      ${td(r.novedades||'', `background-color:${rowBg};font-size:8pt;white-space:pre-wrap;`)}
+    </tr>`;
+  }).join('');
+
+  const itemHeaders = itemNames.map((n,i) => th(`${i+1}. ${n}`, 'background-color:#2d6a4f;color:white;font-size:8pt;text-align:center;writing-mode:normal;max-width:90px;white-space:normal;')).join('');
+
+  // ── DETAIL BLOCKS (one per audit) ──
+  const detailBlocks = db.map((r,idx) => {
+    const ef = estadoFg(r), eb = estadoBg(r);
+    const metaRows = [
+      ['PDV', r.pdv],['Fecha', r.fecha],['Hora', r.hora||'—'],['Auditor', r.auditor],
+      ['Manager', r.admin||'—'],['Jefe Cocina', r.jefeCocina||'—'],
+      ['Coord. Zona', r.coordinadorZona||'—'],['Persona que Recibe', r.receptor||'—'],
+      ['Tipo PDV', r.tipoPdv||'—'],['Modalidad', r.modalidad||'—'],
+    ].map(([l,v]) => `<tr>
+      ${td(l,'background-color:#e8f5e9;font-weight:bold;width:120pt;')}
+      ${td(v,'background-color:#f9f9f9;')}
+      <td colspan="${numCols-2}" style="border:none;background:white;"></td>
+    </tr>`).join('');
+
+    const itemRows = r.items.map((it,i) => {
+      const cc = calColor(it.calificacion);
+      const rowBg = i%2===0?'#f5fff8':'#ffffff';
+      return `<tr>
+        ${td(it.id,'text-align:center;background-color:'+rowBg+';font-weight:bold;color:#1b5e20;')}
+        <td colspan="3" style="font-family:Calibri,Arial,sans-serif;font-size:9pt;padding:4px 8px;border:1px solid #cfd8dc;background-color:${rowBg};">${esc(it.nombre)}</td>
+        ${td(it.maxPts,'text-align:center;background-color:'+rowBg+';')}
+        ${td(calLabel(it.calificacion),'text-align:center;background-color:'+cc.bg+';color:'+cc.fg+';font-weight:bold;')}
+        ${td(it.puntaje,'text-align:center;background-color:'+rowBg+';font-weight:bold;')}
+        <td colspan="${numCols-7}" style="font-family:Calibri,Arial,sans-serif;font-size:9pt;padding:4px 8px;border:1px solid #cfd8dc;background-color:${rowBg};font-style:italic;color:#555;">${esc(it.obs||'')}</td>
+      </tr>`;
+    }).join('');
+
+    const hallRow = r.hallazgo ? `
+      ${hdr('📋 HALLAZGOS', '#37474f','white',numCols)}
+      <tr><td colspan="${numCols}" style="font-family:Calibri,Arial,sans-serif;background-color:#fafafa;padding:8px 12px;border:1px solid #cfd8dc;font-size:9pt;white-space:pre-wrap;">${esc(r.hallazgo)}</td></tr>` : '';
+    const retroRow = r.retroalimentacion ? `
+      ${hdr('✏️ RETROALIMENTACIÓN / CAPACITACIÓN', '#1b5e20','white',numCols)}
+      <tr><td colspan="${numCols}" style="font-family:Calibri,Arial,sans-serif;background-color:#f0faf4;padding:8px 12px;border:1px solid #cfd8dc;font-size:9pt;white-space:pre-wrap;">${esc(r.retroalimentacion)}</td></tr>` : '';
+    const novRow = r.novedades ? `
+      ${hdr('📦 NOVEDADES Y ACCIONES CORRECTIVAS', '#e65100','white',numCols)}
+      <tr><td colspan="${numCols}" style="font-family:Calibri,Arial,sans-serif;background-color:#fff8f4;padding:8px 12px;border:1px solid #cfd8dc;font-size:9pt;white-space:pre-wrap;">${esc(r.novedades)}</td></tr>` : '';
+
+    return `
+      ${spacer()}
+      <tr><td colspan="${numCols}" style="font-family:Calibri,Arial,sans-serif;background-color:#071a0f;color:white;font-weight:bold;font-size:12pt;padding:10px 14px;border:1px solid #071a0f;">
+        🍽️ AUDITORÍA #${idx+1} — ${esc(r.pdv)} · ${r.fecha}${r.hora?' · '+r.hora:''}
+      </td></tr>
+      ${hdr('📍 INFORMACIÓN GENERAL','#1b4332','white',numCols)}
+      ${metaRows}
+      <tr>
+        <td colspan="${numCols}" style="font-family:Calibri,Arial,sans-serif;background-color:${eb};color:${ef};font-weight:bold;font-size:12pt;text-align:center;padding:8px;border:1px solid ${ef};">
+          ${r.estado} · ${formatPct(r.pct)}% · ${r.puntajeTotal}/${MAX_TOTAL} pts
+        </td>
+      </tr>
+      ${hdr('📊 DETALLE POR ÍTEM','#2d6a4f','white',numCols)}
+      <tr>
+        ${th('N°','background-color:#40916c;color:white;text-align:center;')}
+        ${th('Ítem Evaluado','background-color:#40916c;color:white;',`colspan="3"`)}
+        ${th('Pts Máx','background-color:#40916c;color:white;text-align:center;')}
+        ${th('Calificación','background-color:#40916c;color:white;text-align:center;')}
+        ${th('Pts','background-color:#40916c;color:white;text-align:center;')}
+        ${th('Observaciones','background-color:#40916c;color:white;',`colspan="${numCols-7}"`)}
+      </tr>
+      ${itemRows}
+      <tr>
+        <td colspan="4" style="font-family:Calibri,Arial,sans-serif;background-color:#071a0f;color:white;font-weight:bold;font-size:10pt;text-align:center;padding:6px;border:1px solid #071a0f;">TOTAL</td>
+        ${td(MAX_TOTAL,'background-color:#071a0f;color:white;font-weight:bold;text-align:center;font-size:10pt;')}
+        ${td(formatPct(r.pct)+'%','background-color:'+ef+';color:white;font-weight:bold;text-align:center;font-size:11pt;')}
+        ${td(r.puntajeTotal,'background-color:#071a0f;color:white;font-weight:bold;text-align:center;font-size:10pt;')}
+        <td colspan="${numCols-7}" style="font-family:Calibri,Arial,sans-serif;background-color:${eb};color:${ef};font-weight:bold;font-size:10pt;text-align:center;padding:6px;border:1px solid ${ef};">${esc(r.estado)}</td>
+      </tr>
+      ${hallRow}${retroRow}${novRow}`;
+  }).join('');
+
+  const exportDate = new Date().toLocaleString('es-CO');
+  const pdvLabel = pdvFilter ? `PDV: ${pdvFilter}` : 'Todos los PDV';
+
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head><meta charset="utf-8"><style>
+  body{margin:0;padding:0;} table{border-collapse:collapse;width:100%;} td,th{font-family:Calibri,Arial,sans-serif;}
+</style></head>
+<body><table>
+
+<!-- PORTADA -->
+<tr><td colspan="${numCols}" style="background-color:#071a0f;color:white;font-size:18pt;font-weight:bold;text-align:center;padding:16px;border:1px solid #071a0f;letter-spacing:1px;">
+  🍽️  CONSOLIDADO DE AUDITORÍAS — TEMPLE COLOMBIA
+</td></tr>
+<tr><td colspan="${numCols}" style="background-color:#1b4332;color:#95d5b2;font-size:9pt;text-align:center;padding:4px;border:1px solid #1b4332;">
+  ${pdvLabel} &nbsp;·&nbsp; ${db.length} auditorías &nbsp;·&nbsp; Exportado: ${exportDate}
+</td></tr>
+
+${spacer()}
+
+<!-- RESUMEN GENERAL -->
+${hdr('📋  RESUMEN GENERAL — TODAS LAS AUDITORÍAS','#071a0f','white',numCols)}
+<tr>
+  ${th('#','background-color:#1b4332;color:white;text-align:center;')}
+  ${th('PDV','background-color:#1b4332;color:white;')}
+  ${th('Fecha','background-color:#1b4332;color:white;')}
+  ${th('Hora','background-color:#1b4332;color:white;')}
+  ${th('Auditor','background-color:#1b4332;color:white;')}
+  ${th('Manager','background-color:#1b4332;color:white;')}
+  ${th('Jefe Cocina','background-color:#1b4332;color:white;')}
+  ${th('Coord. Zona','background-color:#1b4332;color:white;')}
+  ${th('Persona Recibe','background-color:#1b4332;color:white;')}
+  ${th('Tipo PDV','background-color:#1b4332;color:white;')}
+  ${th('Modalidad','background-color:#1b4332;color:white;')}
+  ${th('Puntaje','background-color:#1b4332;color:white;text-align:center;')}
+  ${th('%','background-color:#1b4332;color:white;text-align:center;')}
+  ${th('Estado','background-color:#1b4332;color:white;text-align:center;')}
+  ${itemHeaders}
+  ${th('Hallazgos','background-color:#37474f;color:white;font-size:8pt;')}
+  ${th('Retroalimentación','background-color:#1b5e20;color:white;font-size:8pt;')}
+  ${th('Novedades / Acc. Correctivas','background-color:#e65100;color:white;font-size:8pt;')}
+</tr>
+${summaryRows}
+
+<!-- DETALLE POR AUDITORÍA -->
+${spacer()}
+${hdr('📂  DETALLE COMPLETO POR AUDITORÍA','#071a0f','white',numCols)}
+${detailBlocks}
+
+${spacer()}
+<tr><td colspan="${numCols}" style="background-color:#1b4332;color:#95d5b2;font-size:8pt;text-align:center;padding:5px;border:1px solid #1b4332;">
+  Generado por Sistema de Auditoría Temple Colombia · ${exportDate}
+</td></tr>
+
+</table></body></html>`;
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  const suffix = pdvFilter ? `_${pdvFilter.replace(/\s+/g,'_')}` : '_TODOS';
+  a.download = `Consolidado_Auditorias${suffix}_${new Date().toISOString().split('T')[0]}.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`📊 Consolidado exportado — ${db.length} auditorías.`, 'success');
+}
+
+function exportarExcel() {
+  const id = document.getElementById('informe_select').value;
+  if (!id) { showToast('Selecciona una auditoría primero.', 'error'); return; }
+  const db = getDB();
+  const r = db.find(x => x.id === id);
+  if (!r) return;
+
+  const pctFmt = formatPct(r.pct) + '%';
+  const isAprobado   = r.pct >= 90;
+  const isMejora     = r.pct >= 85 && r.pct < 90;
+  const estadoFg  = isAprobado ? '#1b5e20' : isMejora ? '#e65100' : '#b71c1c';
+  const estadoBg  = isAprobado ? '#c8e6c9' : isMejora ? '#ffe0b2' : '#ffcdd2';
+
+  const calColor = cal => {
+    if (cal === 'cumple')    return {bg:'#c8e6c9', fg:'#1b5e20'};
+    if (cal === 'parcial')   return {bg:'#ffe0b2', fg:'#e65100'};
+    if (cal === 'no_cumple') return {bg:'#ffcdd2', fg:'#b71c1c'};
+    return {bg:'#f5f5f5', fg:'#666'};
+  };
+  const calLabel = cal => {
+    if (cal === 'cumple')    return 'CUMPLE';
+    if (cal === 'parcial')   return 'CUMPLE PARCIALMENTE';
+    if (cal === 'no_cumple') return 'NO CUMPLE';
+    return 'SIN CALIFICAR';
+  };
+  const esc = v => String(v === null || v === undefined ? '' : v)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const td = (v, s = '') =>
+    `<td style="font-family:Calibri,Arial,sans-serif;font-size:10pt;padding:5px 9px;border:1px solid #cfd8dc;vertical-align:middle;${s}">${esc(v)}</td>`;
+  const th = (v, s = '', extra = '') =>
+    `<td ${extra} style="font-family:Calibri,Arial,sans-serif;font-size:10pt;padding:6px 10px;border:1px solid #90a4ae;font-weight:bold;vertical-align:middle;${s}">${esc(v)}</td>`;
+  const hdr = (title, bg, fg = 'white', cols = 6) =>
+    `<tr><td colspan="${cols}" style="font-family:Calibri,Arial,sans-serif;background-color:${bg};color:${fg};font-weight:bold;font-size:11pt;padding:7px 12px;border:1px solid ${bg};letter-spacing:.4px;">${title}</td></tr>`;
+  const spacer = () =>
+    `<tr><td colspan="6" style="border:none;background-color:white;padding:3px;"></td></tr>`;
+
+  const itemRows = r.items.map((it, i) => {
+    const c = calColor(it.calificacion);
+    const rowBg = i % 2 === 0 ? '#f0f4ff' : '#ffffff';
+    return `<tr>
+      ${td(it.id,   `text-align:center;background-color:${rowBg};`)}
+      ${td(it.nombre, `background-color:${rowBg};`)}
+      ${td(it.maxPts, `text-align:center;background-color:${rowBg};`)}
+      ${td(calLabel(it.calificacion), `text-align:center;background-color:${c.bg};color:${c.fg};font-weight:bold;`)}
+      ${td(it.puntaje, `text-align:center;background-color:${rowBg};`)}
+      ${td(it.obs || '', `background-color:${rowBg};white-space:pre-wrap;`)}
+    </tr>`;
+  }).join('');
+
+  const hallazgosSection = r.hallazgo ? `
+    ${spacer()}
+    ${hdr('📋  HALLAZGOS IDENTIFICADOS', '#37474f')}
+    <tr><td colspan="6" style="font-family:Calibri,Arial,sans-serif;background-color:#fafafa;padding:9px 12px;border:1px solid #cfd8dc;font-size:10pt;white-space:pre-wrap;">${esc(r.hallazgo)}</td></tr>` : '';
+
+  const retroSection = r.retroalimentacion ? `
+    ${spacer()}
+    ${hdr('✏️  RETROALIMENTACIÓN / CAPACITACIÓN EJECUTADA', '#1565c0')}
+    <tr><td colspan="6" style="font-family:Calibri,Arial,sans-serif;background-color:#f5f8ff;padding:9px 12px;border:1px solid #cfd8dc;font-size:10pt;white-space:pre-wrap;">${esc(r.retroalimentacion)}</td></tr>` : '';
+
+  const novedadesSection = r.novedades ? `
+    ${spacer()}
+    ${hdr('📦  NOVEDADES Y ACCIONES CORRECTIVAS CON PRODUCTO', '#e65100')}
+    <tr><td colspan="6" style="font-family:Calibri,Arial,sans-serif;background-color:#fff8f4;padding:9px 12px;border:1px solid #cfd8dc;font-size:10pt;white-space:pre-wrap;">${esc(r.novedades)}</td></tr>` : '';
+
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel">
+<head><meta charset="utf-8"><style>
+  body{margin:0;padding:0;}
+  table{border-collapse:collapse;width:100%;}
+</style></head>
+<body>
+<table>
+<colgroup>
+  <col style="width:42pt">
+  <col style="width:200pt">
+  <col style="width:58pt">
+  <col style="width:120pt">
+  <col style="width:70pt">
+  <col style="width:180pt">
+</colgroup>
+
+<!-- ══ TÍTULO ══ -->
+<tr><td colspan="6" style="font-family:Calibri,Arial,sans-serif;background-color:#0a0d1a;color:white;font-size:16pt;font-weight:bold;text-align:center;padding:14px 20px;border:1px solid #0a0d1a;letter-spacing:1px;">🍽️  INFORME DE AUDITORÍA INTERNA DE COCINA</td></tr>
+<tr><td colspan="6" style="font-family:Calibri,Arial,sans-serif;background-color:#1a237e;color:#90caf9;font-size:9pt;text-align:center;padding:4px;border:1px solid #1a237e;">Temple Colombia · Auditoría de Inocuidad y Buenas Prácticas de Manufactura</td></tr>
+
+${spacer()}
+
+<!-- ══ INFO GENERAL ══ -->
+${hdr('📍  INFORMACIÓN GENERAL', '#1a237e')}
+<tr>
+  ${th('PDV', 'background-color:#e8eaf6;')}
+  ${td(r.pdv, 'font-weight:bold;font-size:11pt;color:#0a0d1a;', '')}
+  ${td('', 'border:none;background-color:white;', '')}
+  ${th('Fecha', 'background-color:#e8eaf6;')}
+  ${td(r.fecha, '', '')}
+  ${td('', 'border:none;background-color:white;', '')}
+</tr>
+<tr>
+  ${th('Hora', 'background-color:#e8eaf6;')}
+  ${td(r.hora || '—')}
+  ${td('', 'border:none;background-color:white;')}
+  ${th('Tipo PDV', 'background-color:#e8eaf6;')}
+  ${td(r.tipoPdv || '—')}
+  ${td('', 'border:none;background-color:white;')}
+</tr>
+<tr>
+  ${th('Manager', 'background-color:#e8eaf6;')}
+  ${td(r.admin || '—')}
+  ${td('', 'border:none;background-color:white;')}
+  ${th('Modalidad', 'background-color:#e8eaf6;')}
+  ${td(r.modalidad || '—')}
+  ${td('', 'border:none;background-color:white;')}
+</tr>
+<tr>
+  ${th('Jefe de Cocina', 'background-color:#e8eaf6;')}
+  ${td(r.jefeCocina || '—')}
+  ${td('', 'border:none;background-color:white;')}
+  ${th('Auditor', 'background-color:#e8eaf6;')}
+  ${td(r.auditor || '—')}
+  ${td('', 'border:none;background-color:white;')}
+</tr>
+<tr>
+  ${th('Coord. de Zona', 'background-color:#e8eaf6;')}
+  ${td(r.coordinadorZona || '—')}
+  ${td('', 'border:none;background-color:white;')}
+  ${th('Persona que Recibe', 'background-color:#e8eaf6;')}
+  ${td(r.receptor || '—')}
+  ${td('', 'border:none;background-color:white;')}
+</tr>
+
+${spacer()}
+
+<!-- ══ TABLA DE ÍTEMS ══ -->
+${hdr('📊  EVALUACIÓN DE CRITERIOS BPM', '#0a0d1a')}
+<tr>
+  ${th('N°',            'background-color:#1a237e;color:white;text-align:center;')}
+  ${th('Ítem Evaluado', 'background-color:#1a237e;color:white;')}
+  ${th('Pts Máx',       'background-color:#1a237e;color:white;text-align:center;')}
+  ${th('Calificación',  'background-color:#1a237e;color:white;text-align:center;')}
+  ${th('Pts Obtenidos', 'background-color:#1a237e;color:white;text-align:center;')}
+  ${th('Observaciones', 'background-color:#1a237e;color:white;')}
+</tr>
+${itemRows}
+<!-- TOTAL -->
+<tr>
+  <td colspan="2" style="font-family:Calibri,Arial,sans-serif;background-color:#0a0d1a;color:white;font-weight:bold;font-size:11pt;text-align:center;padding:7px;border:1px solid #0a0d1a;">TOTAL</td>
+  ${td(MAX_TOTAL, 'background-color:#0a0d1a;color:white;font-weight:bold;text-align:center;font-size:11pt;')}
+  ${td(pctFmt,    `background-color:${estadoFg};color:white;font-weight:bold;text-align:center;font-size:12pt;`)}
+  ${td(r.puntajeTotal, 'background-color:#0a0d1a;color:white;font-weight:bold;text-align:center;font-size:11pt;')}
+  ${td(r.estado,  `background-color:${estadoBg};color:${estadoFg};font-weight:bold;text-align:center;font-size:10pt;`)}
+</tr>
+
+${hallazgosSection}
+${retroSection}
+${novedadesSection}
+
+${spacer()}
+<tr><td colspan="6" style="font-family:Calibri,Arial,sans-serif;background-color:#1a237e;color:#90caf9;font-size:8pt;text-align:center;padding:5px;border:1px solid #1a237e;">Generado por Sistema de Auditoría Temple Colombia · ${new Date().toLocaleString('es-CO')}</td></tr>
+
+</table>
+</body></html>`;
+
+  const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `Auditoria_${r.pdv.replace(/\s+/g,'_')}_${r.fecha}.xls`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('📥 Excel descargado exitosamente.', 'success');
+}
+
+
+// =========================================================
+// CONFIGURACIÓN & EMAIL (mailto)
+// =========================================================
+function cargarConfig() {
+  try {
+    const cfg = (_configCache !== null) ? Object.assign({}, _configCache) : JSON.parse(localStorage.getItem('auditoria_config') || '{}');
+    const to = document.getElementById('cfg_email_to');
+    const cc = document.getElementById('cfg_email_cc');
+    const auto = document.getElementById('cfg_email_auto');
+    if (to)   to.value   = cfg.emailTo   || '';
+    if (cc)   cc.value   = cfg.emailCc   || '';
+    if (auto) auto.checked = cfg.emailAuto !== false;
+    const su = document.getElementById('cfg_sheets_url');
+    const st = document.getElementById('cfg_sheets_token');
+    if (su) su.value = cfg.sheetsUrl   || '';
+    if (st) st.value = cfg.sheetsToken || '';
+    const ps = document.getElementById('cfg_pin_supervisor');
+    const pj = document.getElementById('cfg_pin_jefe');
+    if (ps) ps.value = cfg.pinSupervisor || '';
+    if (pj) pj.value = cfg.pinJefe       || '';
+  } catch(e) {}
+  actualizarBackupInfo();
+}
+
+function guardarConfig() {
+  const pinSup = (document.getElementById('cfg_pin_supervisor') || {value:''}).value.trim();
+  const pinJef = (document.getElementById('cfg_pin_jefe')       || {value:''}).value.trim();
+  if ((pinSup && pinSup.length < 4) || (pinJef && pinJef.length < 4)) {
+    showToast('⚠️ Los PINs deben tener al menos 4 caracteres.', 'error'); return;
+  }
+  const cfg = {
+    emailTo:       (document.getElementById('cfg_email_to')    || {value:''}).value.trim(),
+    emailCc:       (document.getElementById('cfg_email_cc')    || {value:''}).value.trim(),
+    emailAuto:     (document.getElementById('cfg_email_auto')  || {checked:true}).checked,
+    sheetsUrl:     (document.getElementById('cfg_sheets_url')  || {value:''}).value.trim(),
+    sheetsToken:   (document.getElementById('cfg_sheets_token')|| {value:''}).value.trim(),
+    pinSupervisor: pinSup,
+    pinJefe:       pinJef,
+  };
+  try {
+    localStorage.setItem('auditoria_config', JSON.stringify(cfg));
+    _configCache = cfg;
+    if (_fbDb) {
+      _fbDb.ref('config').set(cfg).catch(err => console.warn('FB save config:', err));
+    }
+    const st = document.getElementById('cfg-status');
+    if (st) { st.textContent = '✅ Configuración guardada.'; st.style.display='block'; setTimeout(()=>st.style.display='none',3000); }
+    showToast('✅ Configuración guardada.', 'success');
+  } catch(e) { showToast('❌ Error guardando config: '+e.message,'error'); }
+}
+
+function getConfig() {
+  if (_configCache !== null) return Object.assign({}, _configCache);
+  try { return JSON.parse(localStorage.getItem('auditoria_config') || '{}'); }
+  catch(e) { return {}; }
+}
+
+function construirMailto(r, asunto) {
+  const cfg = getConfig();
+  const to = cfg.emailTo || '';
+  const cc = cfg.emailCc || '';
+
+  const calLabel = cal => cal==='cumple'?'✅ CUMPLE': cal==='parcial'?'⚠️ CUMPLE PARC.': cal==='nocumple'||cal==='no_cumple'?'❌ NO CUMPLE':'— S/C';
+
+  const incumplidos = r.items.filter(it => it.calificacion !== 'cumple').map(it =>
+    `  ${it.id}. ${it.nombre}: ${calLabel(it.calificacion)}${it.obs?' — '+it.obs:''}`
+  ).join('\n');
+
+  const body = [
+    '══════════════════════════════════════',
+    '   INFORME DE AUDITORÍA INTERNA DE COCINA',
+    '   Temple Colombia',
+    '══════════════════════════════════════',
+    '',
+    `📍 PDV: ${r.pdv}`,
+    `📅 Fecha: ${r.fecha}${r.hora ? ' — ' + formatHora(r.hora) : ''}`,
+    `👤 Auditor: ${r.auditor}`,
+    `🏪 Manager: ${r.admin || '—'}`,
+    `👨‍🍳 Jefe de Cocina: ${r.jefeCocina || '—'}`,
+    `📌 Coordinador Zona: ${r.coordinadorZona || '—'}`,
+    `🤝 Persona que Recibe: ${r.receptor || '—'}`,
+    '',
+    '──────────────────────────────────────',
+    `🏆 RESULTADO: ${r.puntajeTotal} / ${MAX_TOTAL} pts — ${formatPct(r.pct)}%`,
+    `   ${r.estado}`,
+    '──────────────────────────────────────',
+    '',
+    incumplidos ? '⚠️ ÍTEMS CON OBSERVACIONES:\n' + incumplidos : '✅ Todos los ítems CUMPLEN',
+    '',
+    r.hallazgo       ? '📋 HALLAZGOS:\n' + r.hallazgo + '\n'       : '',
+    r.retroalimentacion ? '✏️ RETROALIMENTACIÓN:\n' + r.retroalimentacion + '\n' : '',
+    r.novedades      ? '📦 NOVEDADES Y ACCIONES CORRECTIVAS:\n' + r.novedades + '\n' : '',
+    '──────────────────────────────────────',
+    `ID: ${r.id} | Generado: ${new Date().toLocaleString('es-CO')}`,
+    '',
+    '(Este correo fue generado automáticamente por el sistema de auditoría Temple Colombia)',
+  ].filter(l => l !== null && l !== undefined).join('\n');
+
+  const subject = asunto || `Auditoría ${r.pdv} — ${r.fecha} — ${r.estado}`;
+  let mailto = `mailto:${encodeURIComponent(to)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  if (cc) mailto += `&cc=${encodeURIComponent(cc)}`;
+  return mailto;
+}
+
+function enviarCorreo(r) {
+  const cfg = getConfig();
+  if (!cfg.emailTo) {
+    showToast('⚠️ Configura el correo destino en la pestaña ⚙️ Config primero.', 'error');
+    // Switch to config tab
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('pane-config').classList.add('active');
+    document.querySelector('.tab-btn[onclick*="config"]').classList.add('active');
+    return;
+  }
+  window.location.href = construirMailto(r);
+  showToast('📧 Abriendo correo...', 'success');
+}
+
+function enviarCorreoInforme() {
+  const id = document.getElementById('informe_select').value;
+  if (!id) { showToast('Selecciona una auditoría primero.', 'error'); return; }
+  const r = getDB().find(x => x.id === id);
+  if (!r) return;
+  enviarCorreo(r);
+}
+
+function probarCorreo() {
+  const fakeR = {
+    id: 'TEST-001', pdv: 'PDV DE PRUEBA', fecha: new Date().toISOString().split('T')[0],
+    hora: '10:00', auditor: 'Auditor Test', admin: 'Manager Test',
+    jefeCocina: 'Chef Test', coordinadorZona: 'Zona Test', receptor: 'Receptor Test',
+    puntajeTotal: 75, pct: 85.7, estado: 'APROBADO CON OPORTUNIDAD DE MEJORA',
+    hallazgo: 'Este es un correo de prueba generado desde la configuración.',
+    retroalimentacion: '', novedades: '',
+    items: ITEMS.map(it => ({...it, calificacion:'cumple', puntaje:it.maxPts, obs:''})),
+  };
+  window.location.href = construirMailto(fakeR, '[PRUEBA] Auditoría Temple Colombia');
+  showToast('📧 Abriendo correo de prueba...', 'success');
+}
+
+
+// =========================================================
+// GOOGLE SHEETS SYNC
+// =========================================================
+function enviarASheets(record) {
+  const cfg = getConfig();
+  if (!cfg.sheetsUrl || !cfg.sheetsToken) return; // not configured
+
+  // Don't include fotos (too large for Sheets cell limits)
+  const payload = {...record, fotos: []};
+
+  fetch(cfg.sheetsUrl + '?token=' + encodeURIComponent(cfg.sheetsToken), {
+    method: 'POST',
+    mode: 'no-cors',
+    body: JSON.stringify(payload)
+  }).catch(() => {}); // fire & forget — fail silently
+}
+
+async function sincronizarDesdeSheets() {
+  const cfg = getConfig();
+  if (!cfg.sheetsUrl || !cfg.sheetsToken) {
+    showToast('⚙️ Configura la URL y Token de Sheets en la pestaña Config primero.', 'error');
+    return;
+  }
+
+  const btn = document.getElementById('btn-sync');
+  if (btn) { btn.textContent = '⏳ Sincronizando...'; btn.disabled = true; }
+
+  try {
+    const url = cfg.sheetsUrl + '?token=' + encodeURIComponent(cfg.sheetsToken);
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+
+    if (data.error) throw new Error(data.error);
+
+    const remotos = data.records || [];
+    if (remotos.length === 0) {
+      showToast('☁️ No hay auditorías en Google Sheets todavía.', 'success');
+      return;
+    }
+
+    const local = getDB();
+    const localIds = new Set(local.map(r => r.id));
+    const nuevos = remotos.filter(r => !localIds.has(r.id));
+
+    if (nuevos.length === 0) {
+      showToast(`☁️ Ya tienes todas las auditorías (${remotos.length} en la nube).`, 'success');
+    } else {
+      const merged = [...local, ...nuevos];
+      saveDB(merged);
+      actualizarPDVList();
+      renderHistorial();
+      showToast(`✅ ${nuevos.length} auditoría(s) nueva(s) descargada(s) desde Google Sheets.`, 'success');
+    }
+  } catch(e) {
+    showToast('❌ Error sincronizando: ' + e.message, 'error');
+  } finally {
+    if (btn) { btn.textContent = '☁️ Sincronizar'; btn.disabled = false; }
+  }
+}
+
+async function probarConexionSheets() {
+  const cfg = getConfig();
+  const url   = (document.getElementById('cfg_sheets_url')   || {value: cfg.sheetsUrl   || ''}).value.trim();
+  const token = (document.getElementById('cfg_sheets_token') || {value: cfg.sheetsToken || ''}).value.trim();
+
+  if (!url || !token) {
+    showToast('Completa la URL y el Token primero.', 'error');
+    return;
+  }
+
+  showToast('🔗 Probando conexión...', 'success');
+  try {
+    const resp = await fetch(url + '?token=' + encodeURIComponent(token));
+    if (!resp.ok) throw new Error('HTTP ' + resp.status);
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`✅ Conexión exitosa — ${data.total ?? 0} auditorías en la nube.`, 'success');
+  } catch(e) {
+    showToast('❌ No se pudo conectar: ' + e.message, 'error');
+  }
+}
+
+
+// =========================================================
+// BACKUP / RESTORE
+// =========================================================
+function exportarBackup() {
+  const db = getDB();
+  if (db.length === 0) { showToast('No hay auditorías para exportar.', 'error'); return; }
+
+  const backup = {
+    version: '1.0',
+    exportedAt: new Date().toISOString(),
+    totalRecords: db.length,
+    app: 'Auditoría Interna de Cocina — Temple Colombia',
+    records: db
+  };
+
+  const json = JSON.stringify(backup, null, 2);
+  const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  const date = new Date().toISOString().split('T')[0];
+  a.download = `backup_auditorias_temple_${date}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`💾 Backup exportado — ${db.length} auditorías guardadas.`, 'success');
+  actualizarBackupInfo();
+}
+
+function importarBackup(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      // Validate structure
+      if (!data.records || !Array.isArray(data.records)) {
+        showToast('❌ Archivo inválido — no contiene registros de auditorías.', 'error');
+        return;
+      }
+
+      const incoming = data.records;
+      const existing = getDB();
+
+      // Merge: add only records not already present (by id)
+      const existingIds = new Set(existing.map(r => r.id));
+      const nuevos = incoming.filter(r => !existingIds.has(r.id));
+      const merged = [...existing, ...nuevos];
+
+      if (nuevos.length === 0) {
+        showToast('ℹ️ Todos los registros ya existen en este dispositivo.', 'success');
+        return;
+      }
+
+      saveDB(merged);
+      renderHistorial();
+      actualizarPDVList();
+      showToast(`✅ ${nuevos.length} auditoría(s) restaurada(s) correctamente.`, 'success');
+      actualizarBackupInfo();
+    } catch(err) {
+      showToast('❌ Error leyendo el backup: ' + err.message, 'error');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function actualizarBackupInfo() {
+  const el = document.getElementById('backup-info');
+  if (!el) return;
+  const db = getDB();
+  if (db.length === 0) { el.textContent = 'Sin auditorías guardadas.'; return; }
+  const last = db.reduce((a,b) => a.savedAt > b.savedAt ? a : b);
+  el.textContent = `${db.length} auditoría(s) en este dispositivo · Última: ${formatFecha(last.fecha)} — ${last.pdv}`;
+}
+
+
+// =========================================================
+// DELETE
+// =========================================================
+function confirmarEliminar(id) {
+  const db = getDB();
+  const r = db.find(x => x.id === id);
+  if (!r) return;
+  document.getElementById('modal-title').textContent = 'Eliminar Auditoría';
+  document.getElementById('modal-body').textContent = `¿Eliminar la auditoría de "${r.pdv}" del ${formatFecha(r.fecha)}? Esta acción no se puede deshacer.`;
+  document.getElementById('modal-ok').onclick = () => { eliminarRecord(id); cerrarModal(); };
+  const inp = document.getElementById('modal-confirm-input');
+  inp.value = '';
+  document.getElementById('modal-ok').disabled = true;
+  document.getElementById('modal-confirm').classList.add('open');
+  setTimeout(() => inp.focus(), 100);
+}
+async function eliminarRecord(id) {
+  await eliminarFotosIDB(id);
+  const db = getDB().filter(x => x.id !== id);
+  saveDB(db);
+  renderHistorial();
+  showToast('Auditoría eliminada.', 'success');
+}
+function cerrarModal() {
+  document.getElementById('modal-confirm').classList.remove('open');
+  const inp = document.getElementById('modal-confirm-input');
+  if (inp) { inp.value = ''; }
+  const btn = document.getElementById('modal-ok');
+  if (btn) btn.disabled = true;
+}
+
+// =========================================================
+// UTILS
+// =========================================================
+function formatFecha(f) {
+  if (!f) return '—';
+  // Handle YYYY-MM-DD format (standard)
+  if (/^\d{4}-\d{2}-\d{2}/.test(f)) {
+    const [y,m,d] = f.split('T')[0].split('-');
+    const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+    return d + ' ' + meses[parseInt(m)-1] + ' ' + y;
+  }
+  // Fallback: try to parse as Date
+  try {
+    const dt = new Date(f);
+    if (!isNaN(dt)) {
+      const meses = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+      return dt.getDate() + ' ' + meses[dt.getMonth()] + ' ' + dt.getFullYear();
+    }
+  } catch(e) {}
+  return f;
+}
+
+function formatHora(h) {
+  if (!h) return '';
+  // Only return HH:MM portion
+  if (/^\d{2}:\d{2}/.test(h)) return h.slice(0,5);
+  try {
+    const dt = new Date('1970-01-01T' + h);
+    if (!isNaN(dt)) return dt.toTimeString().slice(0,5);
+  } catch(e) {}
+  return h.slice(0,5) || '';
+}
+
+function formatPct(pct) {
+  // Handle pct stored as ratio (0-1) or percentage (0-100)
+  if (typeof pct !== 'number') pct = parseFloat(pct) || 0;
+  if (pct > 0 && pct <= 1) pct = pct * 100;
+  return pct.toFixed(1);
+}
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast show toast-${type}`;
+  setTimeout(() => { t.classList.remove('show'); }, 3500);
+}
+
+function actualizarPDVList() {
+  const db = getDB();
+  const pdvs = [...new Set(db.map(r => r.pdv))];
+  const dl = document.getElementById('pdv-list');
+  dl.innerHTML = pdvs.map(p => `<option value="${p}">`).join('');
+}
+
+// =========================================================
+// AUTO-GENERACIÓN DE HALLAZGOS AL GUARDAR
+// =========================================================
+function autoCrearHallazgos(record) {
+  // Solo genera si el estado no es completamente aprobado
+  if (record.estado === 'APROBADO') return;
+
+  const nuevos = [];
+  const base = record.id;
+
+  // Un hallazgo por cada ítem que no cumple o cumple parcialmente
+  record.items.forEach(it => {
+    if (it.calificacion !== 'nocumple' && it.calificacion !== 'parcial') return;
+    const nivel   = it.calificacion === 'nocumple' ? '❌ NO CUMPLE' : '⚠️ CUMPLE PARCIALMENTE';
+    const desc    = it.obs ? `${nivel} — ${it.obs}` : `${nivel} — ${it.nombre}. Sin observación adicional registrada.`;
+    nuevos.push({
+      id:               base + '_' + it.id,
+      auditId:          base,
+      pdv:              record.pdv,
+      fecha:            record.fecha,
+      item:             it.id + '. ' + it.nombre,
+      descripcion:      desc,
+      fechaLimite:      '',
+      estado:           'abierto',
+      creadoEn:         new Date().toISOString(),
+      fechaCierre:      '',
+      comentariosJefe:  '',
+      fotosGestion:     0,
+      calificacion:     it.calificacion,
+      tipo:             'auto',
+    });
+  });
+
+  if (nuevos.length === 0) return;
+
+  // Evitar duplicados: omitir IDs que ya existen
+  const existentes = new Set(getHallazgos().map(h => h.id));
+  const filtrados  = nuevos.filter(h => !existentes.has(h.id));
+  if (filtrados.length === 0) return;
+
+  saveHallazgos([...getHallazgos(), ...filtrados]);
+  setTimeout(() => showToast(`📌 ${filtrados.length} hallazgo(s) enviados a Seguimiento automáticamente.`, 'success'), 1200);
+}
+
+// =========================================================
+// FIREBASE SYNC
+// =========================================================
+function setSyncStatus(estado) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const map = {
+    conectando: { txt: '⟳ Conectando…', bg: '#fff8e1', col: '#f9a825' },
+    sincronizado: { txt: '✅ Sincronizado', bg: '#e8f5e9', col: '#388e3c' },
+    error:       { txt: '⚠️ Sin conexión', bg: '#fce4ec', col: '#c62828' },
+    offline:     { txt: '📴 Modo local',   bg: '#f3e5f5', col: '#6a1b9a' },
+  };
+  const s = map[estado] || map.offline;
+  el.textContent = s.txt;
+  el.style.cssText = `display:inline-block;margin-left:auto;font-size:10px;font-weight:600;padding:3px 10px;border-radius:10px;white-space:nowrap;letter-spacing:.3px;background:${s.bg};color:${s.col};`;
+}
+
+function initFirebase() {
+  try {
+    setSyncStatus('conectando');
+    if (!firebase || !firebase.app) { setSyncStatus('offline'); return; }
+    const app = firebase.apps.length ? firebase.app() : firebase.initializeApp(FIREBASE_CONFIG);
+    _fbDb = firebase.database(app);
+    _fbSyncActivo = true;
+
+    // Migrate existing localStorage hallazgos to Firebase on first connect
+    const local = (() => {
+      try { return JSON.parse(localStorage.getItem('auditoria_hallazgos') || '[]'); }
+      catch(e) { return []; }
+    })();
+
+    // Real-time listener for hallazgos
+    _fbDb.ref('hallazgos').on('value', snap => {
+      const fbData = snap.val() || {};
+      const fbList = Object.values(fbData);
+
+      // Merge: Firebase is source of truth; add local-only items that haven't synced yet
+      const fbIds = new Set(fbList.map(h => h.id));
+      const localOnly = (_hallazgosCache === null ? local : []).filter(h => !fbIds.has(h.id));
+      const merged = [...fbList, ...localOnly];
+
+      _hallazgosCache = merged;
+      // Persist locally as backup
+      try { localStorage.setItem('auditoria_hallazgos', JSON.stringify(merged)); } catch(e) {}
+      // Push any local-only items to Firebase
+      if (localOnly.length > 0) {
+        const updates = {};
+        localOnly.forEach(h => { updates['hallazgos/' + fbKey(h.id)] = h; });
+        _fbDb.ref().update(updates).catch(err => console.warn('FB migrate:', err));
+      }
+      // Re-render if seguimiento is visible
+      const seg = document.getElementById('tab-seguimiento');
+      if (seg && seg.classList.contains('active') || document.querySelector('#content-seguimiento')?.style.display !== 'none') {
+        renderSeguimiento();
+      }
+      setSyncStatus('sincronizado');
+    }, err => {
+      console.warn('Firebase listener error:', err);
+      setSyncStatus('error');
+    });
+
+    // Real-time listener for config (PINs, email, etc.)
+    _fbDb.ref('config').on('value', snap => {
+      const fbCfg = snap.val();
+      if (fbCfg && typeof fbCfg === 'object') {
+        _configCache = fbCfg;
+        try { localStorage.setItem('auditoria_config', JSON.stringify(fbCfg)); } catch(e) {}
+        cargarConfig(); // refresh Config tab fields if open
+      }
+    }, err => console.warn('FB config listener:', err));
+
+    // Push local config to Firebase if Firebase has nothing yet
+    _fbDb.ref('config').once('value').then(snap => {
+      if (!snap.val()) {
+        const localCfg = (() => {
+          try { return JSON.parse(localStorage.getItem('auditoria_config') || '{}'); } catch(e) { return {}; }
+        })();
+        if (Object.keys(localCfg).length > 0) {
+          _fbDb.ref('config').set(localCfg).catch(err => console.warn('FB migrate config:', err));
+        }
+      }
+    });
+
+    console.log('Firebase conectado a', FIREBASE_CONFIG.databaseURL);
+  } catch(err) {
+    console.warn('Firebase init error:', err);
+    setSyncStatus('offline');
+  }
+}
+
+// Store hallazgo photos in Firebase RTDB as base64 array
+async function guardarFotosFirebase(hallId, fotos) {
+  if (_fbDb) {
+    try {
+      await _fbDb.ref('fotos_gestion/' + fbKey(hallId)).set(fotos);
+      return;
+    } catch(err) {
+      console.warn('FB guardar fotos:', err);
+    }
+  }
+  // Fallback to IndexedDB
+  await guardarFotosIDB('hall_gest_' + hallId, fotos);
+}
+
+async function obtenerFotosFirebase(hallId) {
+  if (_fbDb) {
+    try {
+      const snap = await _fbDb.ref('fotos_gestion/' + fbKey(hallId)).once('value');
+      const val = snap.val();
+      if (Array.isArray(val)) return val;
+      if (val && typeof val === 'object') return Object.values(val); // RTDB stores arrays as objects
+      return [];
+    } catch(err) {
+      console.warn('FB obtener fotos:', err);
+    }
+  }
+  // Fallback to IndexedDB
+  return obtenerFotosIDB('hall_gest_' + hallId);
+}
+
+// =========================================================
+// HALLAZGOS / SEGUIMIENTO
+// =========================================================
+function getHallazgos() {
+  // Use live Firebase cache when available, else fall back to localStorage
+  if (_hallazgosCache !== null) return _hallazgosCache.slice();
+  try { return JSON.parse(localStorage.getItem('auditoria_hallazgos') || '[]'); }
+  catch(e) { return []; }
+}
+function saveHallazgos(list) {
+  // 1. Always persist locally so UI stays snappy
+  try { localStorage.setItem('auditoria_hallazgos', JSON.stringify(list)); } catch(e) {}
+  _hallazgosCache = list.slice();
+  // 2. Push to Firebase
+  if (_fbDb) {
+    const obj = {};
+    list.forEach(h => { obj[fbKey(h.id)] = h; });
+    _fbDb.ref('hallazgos').set(obj).catch(err => console.warn('FB save hallazgos:', err));
+  }
+}
+
+function abrirModalHallazgo(auditId) {
+  const db = getDB();
+  const r  = db.find(x => x.id === auditId);
+  if (!r) return;
+  const existing = document.getElementById('modal-hall');
+  if (existing) existing.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-hall';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:520px;width:95%;">
+      <h3>📌 Crear Hallazgo de Seguimiento</h3>
+      <p style="font-size:12px;color:#546e7a;margin-bottom:14px;">PDV: <strong>${r.pdv}</strong> · ${formatFecha(r.fecha)}</p>
+      <div class="form-grid">
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Descripción del hallazgo *</label>
+          <textarea id="hall-desc" class="hallazgo-textarea" style="min-height:80px" placeholder="Describe el hallazgo o no conformidad..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Ítem relacionado</label>
+          <select id="hall-item">
+            <option value="">-- General --</option>
+            ${ITEMS.map(it => `<option value="${it.id}">${it.id}. ${it.nombre}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Responsable</label>
+          <input type="text" id="hall-resp" placeholder="Nombre del responsable" value="${r.admin||''}">
+        </div>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>Fecha límite</label>
+          <input type="date" id="hall-fecha">
+        </div>
+      </div>
+      <div class="btn-group" style="margin-top:16px;justify-content:flex-end;">
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('modal-hall').remove()">Cancelar</button>
+        <button class="btn btn-primary btn-sm" onclick="guardarHallazgo('${auditId}','${r.pdv.replace(/'/g,"\\'")}','${r.fecha}')">💾 Guardar hallazgo</button>
+      </div>
+    </div>`;
+  document.body.appendChild(overlay);
+  setTimeout(() => document.getElementById('hall-desc') && document.getElementById('hall-desc').focus(), 100);
+}
+
+function guardarHallazgo(auditId, pdv, fecha) {
+  const desc = (document.getElementById('hall-desc')||{value:''}).value.trim();
+  if (!desc) { showToast('⚠️ Escribe la descripción del hallazgo.', 'error'); return; }
+  const itemId = (document.getElementById('hall-item')||{value:''}).value;
+  const resp   = (document.getElementById('hall-resp')||{value:''}).value.trim();
+  const fl     = (document.getElementById('hall-fecha')||{value:''}).value;
+  const itemNombre = itemId ? (ITEMS.find(x => x.id == itemId)||{nombre:'General'}).nombre : 'General';
+  const h = {
+    id: Date.now().toString(), auditId, pdv, fecha,
+    item: itemNombre, descripcion: desc, responsable: resp, fechaLimite: fl,
+    estado: 'abierto', creadoEn: new Date().toISOString(),
+    fechaCierre: '', evidenciaCierre: '',
+  };
+  const list = getHallazgos();
+  list.push(h);
+  saveHallazgos(list);
+  const modal = document.getElementById('modal-hall');
+  if (modal) modal.remove();
+  showToast('📌 Hallazgo registrado correctamente.', 'success');
+}
+
+function actualizarCampoHallazgo(id, campo, valor) {
+  const list = getHallazgos();
+  const h = list.find(x => x.id === id);
+  if (!h) return;
+  h[campo] = valor;
+  saveHallazgos(list);
+}
+
+function eliminarHallazgo(id) {
+  if (!confirm('¿Eliminar este hallazgo? Esta acción no se puede deshacer.')) return;
+  saveHallazgos(getHallazgos().filter(x => x.id !== id));
+  renderSeguimiento();
+  showToast('Hallazgo eliminado.', 'success');
+}
+
+// ---- Importar hallazgos del historial ----
+function importarHallazgosHistorico() {
+  const db = getDB();
+  const nuevos = [];
+  const existentes = new Set(getHallazgos().map(h => h.id));
+  db.forEach(record => {
+    (record.items || []).forEach(it => {
+      if (it.calificacion !== 'nocumple' && it.calificacion !== 'parcial') return;
+      const hid = record.id + '_' + it.id;
+      if (existentes.has(hid)) return;
+      const nivel = it.calificacion === 'nocumple' ? '❌ NO CUMPLE' : '⚠️ CUMPLE PARCIALMENTE';
+      const desc  = it.obs ? `${nivel} — ${it.obs}` : `${nivel} — ${it.nombre}. Sin observación adicional registrada.`;
+      nuevos.push({
+        id: hid, auditId: record.id, pdv: record.pdv, fecha: record.fecha,
+        item: it.id + '. ' + it.nombre, descripcion: desc,
+        fechaLimite: '', estado: 'abierto',
+        creadoEn: record.savedAt || (record.fecha + 'T00:00:00.000Z'),
+        fechaCierre: '', comentariosJefe: '', fotosGestion: 0,
+        calificacion: it.calificacion, tipo: 'auto',
+      });
+    });
+  });
+  if (nuevos.length > 0) saveHallazgos([...getHallazgos(), ...nuevos]);
+  renderSeguimiento();
+  showToast(nuevos.length > 0 ? `✅ ${nuevos.length} hallazgo(s) importados del historial.` : 'Sin hallazgos nuevos para importar. Todo está al día.', 'success');
+}
+
+// ---- Gestión del jefe de cocina (inline: comentarios + fotos) ----
+function guardarComentariosJefe(id, valor) {
+  const list = getHallazgos();
+  const h = list.find(x => x.id === id);
+  if (!h) return;
+  h.comentariosJefe = valor;
+  if (valor.trim() && h.estado === 'abierto') h.estado = 'en proceso';
+  saveHallazgos(list);
+}
+
+async function enviarCorreccionJefe(id) {
+  const ta = document.getElementById('ta-jefe-' + id);
+  const valor = ta ? ta.value.trim() : '';
+  if (!valor) {
+    showToast('⚠️ Escribe las acciones tomadas antes de enviar.', 'error');
+    if (ta) ta.focus();
+    return;
+  }
+  // Require at least one photo
+  const fotos = await obtenerFotosFirebase(id);
+  if (!fotos || fotos.length === 0) {
+    showToast('📷 Adjunta al menos una foto de evidencia antes de enviar.', 'error');
+    const uploadBtn = document.querySelector(`[onclick="document.getElementById('fg-${id}').click()"]`);
+    if (uploadBtn) uploadBtn.style.animation = 'none', uploadBtn.offsetHeight, uploadBtn.style.animation = 'pulse 0.4s 2';
+    return;
+  }
+  guardarComentariosJefe(id, valor);
+  // Show inline confirmation
+  const confirmEl = document.getElementById('confirm-jefe-' + id);
+  if (confirmEl) { confirmEl.style.display = 'block'; setTimeout(() => confirmEl.style.display = 'none', 5000); }
+  showToast('✅ Corrección enviada correctamente.', 'success');
+}
+
+async function agregarFotosGestion(id, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  input.value = '';
+
+  // Disable button while uploading to prevent double-tap
+  const uploadBtn = input.previousElementSibling;
+  if (uploadBtn) uploadBtn.disabled = true;
+
+  try {
+    // Process sequentially to avoid race condition (each reads current list before appending)
+    for (const file of files) {
+      const dataUrl = await new Promise((res, rej) => {
+        const reader = new FileReader();
+        reader.onload  = e => res(e.target.result);
+        reader.onerror = () => rej(new Error('Error leyendo archivo'));
+        reader.readAsDataURL(file);
+      });
+
+      let compressed;
+      try {
+        compressed = await comprimirImagen(dataUrl);
+      } catch(e) {
+        compressed = dataUrl; // fallback: use original if compression fails
+      }
+
+      // Read → append → write (sequential = no race condition)
+      const actuales = await obtenerFotosFirebase(id);
+      const todas = [...actuales, compressed];
+      await guardarFotosFirebase(id, todas);
+
+      // Update hallazgo metadata
+      const list = getHallazgos();
+      const h = list.find(x => x.id === id);
+      if (h) {
+        h.fotosGestion = todas.length;
+        if (h.estado === 'abierto') h.estado = 'en proceso';
+        saveHallazgos(list);
+      }
+
+      // Update counter button in DOM
+      const btn = document.getElementById('btn-ver-fotos-' + id);
+      if (btn) {
+        btn.style.display = 'inline-flex';
+        btn.textContent = `🖼 Ver ${todas.length} foto(s)`;
+      }
+
+      showToast(`📷 Foto cargada (${todas.length} en total).`, 'success');
+    }
+  } catch(err) {
+    console.error('agregarFotosGestion error:', err);
+    showToast('❌ Error al subir la foto. Intenta de nuevo.', 'error');
+  } finally {
+    if (uploadBtn) uploadBtn.disabled = false;
+  }
+}
+
+async function verFotosGestion(id) {
+  const fotos = await obtenerFotosFirebase(id);
+  if (!fotos || fotos.length === 0) { showToast('Sin fotos guardadas.', 'error'); return; }
+  const old = document.getElementById('modal-ver-fotos-hall');
+  if (old) old.remove();
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay open';
+  overlay.id = 'modal-ver-fotos-hall';
+  overlay.innerHTML = `
+    <div class="modal" style="max-width:640px;width:95%;max-height:90vh;overflow-y:auto;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <h3 style="margin:0;">📷 Fotos de evidencia (${fotos.length})</h3>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('modal-ver-fotos-hall').remove()">✕ Cerrar</button>
+      </div>
+      <div class="print-photo-grid">${fotos.map((s,i) => `<img src="${s}" alt="Foto ${i+1}" style="cursor:zoom-in;" onclick="window.open(this.src)">`).join('')}</div>
+    </div>`;
+  document.body.appendChild(overlay);
+}
+
+// ---- Cierre formal por el supervisor ----
+function cerrarHallazgoSupervisor(id) {
+  if (!confirm('¿Confirmar cierre de este hallazgo?\n\nEsta acción indica que el supervisor verificó y aprueba la corrección.')) return;
+  const list = getHallazgos();
+  const h = list.find(x => x.id === id);
+  if (!h) return;
+  h.estado = 'cerrado';
+  h.fechaCierre = new Date().toISOString().split('T')[0];
+  saveHallazgos(list);
+  renderSeguimiento();
+  showToast('✅ Hallazgo cerrado por supervisor.', 'success');
+}
+
+function calcularPlazoHTML(h, today) {
+  if (h.estado === 'cerrado') {
+    // Show whether it was closed on time
+    const fechaBase  = h.fecha || (h.creadoEn||'').slice(0,10);
+    const deadline   = h.fechaLimite || sumarDias(fechaBase, 5);
+    const diasTardo  = diffDias(fechaBase, h.fechaCierre);
+    const aTime      = h.fechaCierre <= deadline;
+    return `<div style="margin-top:6px;font-size:11px;font-weight:600;color:${aTime?'#2e7d32':'#b71c1c'};">
+      ${aTime ? `✅ Cerrado a tiempo — día ${diasTardo} de gestión` : `⚠️ Cerrado tarde — ${diasTardo} días de gestión`}
+    </div>`;
+  }
+
+  const fechaBase = h.fecha || (h.creadoEn||'').slice(0,10);
+  if (!fechaBase) return '';
+  const PLAZO     = 5; // días por defecto
+  const deadline  = h.fechaLimite || sumarDias(fechaBase, PLAZO);
+  const diasTrans = diffDias(fechaBase, today);
+  const diasRest  = diffDias(today, deadline);
+  const totalDias = diffDias(fechaBase, deadline);
+  const pct       = Math.min(100, Math.round((diasTrans / totalDias) * 100));
+
+  let color, msg;
+  if (diasRest > 2) {
+    color = '#2e7d32'; msg = `${diasRest} día${diasRest!==1?'s':''} restante${diasRest!==1?'s':''}`;
+  } else if (diasRest > 0) {
+    color = '#e65100'; msg = `⚠️ Solo ${diasRest} día${diasRest!==1?'s':''} restante${diasRest!==1?'s':''}`;
+  } else if (diasRest === 0) {
+    color = '#b71c1c'; msg = '🔴 Vence hoy';
+  } else {
+    color = '#b71c1c'; msg = `🔴 Vencido hace ${Math.abs(diasRest)} día${Math.abs(diasRest)!==1?'s':''}`;
+  }
+
+  const barColor = diasRest > 2 ? '#66bb6a' : diasRest > 0 ? '#ffa726' : '#ef5350';
+
+  return `<div style="margin-top:7px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
+      <span style="font-size:11px;color:#546e7a;">📅 Día <strong>${diasTrans}</strong> de ${totalDias}</span>
+      <span style="font-size:11px;font-weight:700;color:${color};">${msg}</span>
+    </div>
+    <div style="height:5px;background:#e0e0e0;border-radius:3px;overflow:hidden;">
+      <div style="height:100%;width:${pct}%;background:${barColor};border-radius:3px;transition:width .3s;"></div>
+    </div>
+  </div>`;
+}
+
+function sumarDias(fechaStr, dias) {
+  const d = new Date(fechaStr + 'T12:00:00');
+  d.setDate(d.getDate() + dias);
+  return d.toISOString().split('T')[0];
+}
+
+function diffDias(desdeStr, hastaStr) {
+  const d1 = new Date(desdeStr + 'T12:00:00');
+  const d2 = new Date(hastaStr + 'T12:00:00');
+  return Math.round((d2 - d1) / 86400000);
+}
+
+function renderSeguimiento() {
+  const filtro   = (document.getElementById('seg-filtro')||{value:''}).value;
+  const pdvFiltro= (document.getElementById('seg-pdv')||{value:''}).value;
+  const allH = getHallazgos();
+  let list = allH.slice();
+  if (filtro)    list = list.filter(h => h.estado === filtro);
+  if (pdvFiltro) list = list.filter(h => h.pdv === pdvFiltro);
+  const estadoOrd = { abierto:0, 'en proceso':1, cerrado:2 };
+  list.sort((a,b) => (estadoOrd[a.estado]||0)-(estadoOrd[b.estado]||0) || b.creadoEn.localeCompare(a.creadoEn));
+
+  // PDV filter options
+  const pdvs = [...new Set(allH.map(h => h.pdv))].sort();
+  const pdvSel = document.getElementById('seg-pdv');
+  if (pdvSel) {
+    const cur = pdvSel.value;
+    pdvSel.innerHTML = '<option value="">Todos los PDV</option>' +
+      pdvs.map(p => `<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+  }
+
+  // Summary counters
+  const counts = {
+    abierto:     allH.filter(h => h.estado === 'abierto').length,
+    'en proceso':allH.filter(h => h.estado === 'en proceso').length,
+    cerrado:     allH.filter(h => h.estado === 'cerrado').length,
+  };
+  const sumEl = document.getElementById('seg-summary');
+  if (sumEl) sumEl.innerHTML = `
+    <div style="background:#ffebee;border-radius:8px;padding:10px 18px;text-align:center;min-width:110px;">
+      <div style="font-size:24px;font-weight:800;color:#b71c1c;">${counts.abierto}</div>
+      <div style="font-size:11px;color:#555;text-transform:uppercase;">Abiertos</div>
+    </div>
+    <div style="background:#fff9c4;border-radius:8px;padding:10px 18px;text-align:center;min-width:110px;">
+      <div style="font-size:24px;font-weight:800;color:#f57f17;">${counts['en proceso']}</div>
+      <div style="font-size:11px;color:#555;text-transform:uppercase;">En proceso</div>
+    </div>
+    <div style="background:#e8f5e9;border-radius:8px;padding:10px 18px;text-align:center;min-width:110px;">
+      <div style="font-size:24px;font-weight:800;color:#1b5e20;">${counts.cerrado}</div>
+      <div style="font-size:11px;color:#555;text-transform:uppercase;">Cerrados</div>
+    </div>`;
+
+  const cont = document.getElementById('seg-container');
+  if (!cont) return;
+  if (list.length === 0) {
+    cont.innerHTML = `<div class="empty-state"><div class="icon">📌</div><h3>Sin hallazgos${filtro||pdvFiltro?' con estos filtros':' registrados'}</h3><p>Usa "⬇️ Cargar del historial" para importar los hallazgos de auditorías anteriores.</p></div>`;
+    return;
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const esSupervisor = sessionStorage.getItem('rol_actual') !== 'jefe';
+  cont.innerHTML = list.map(h => {
+    const vencido  = h.fechaLimite && h.estado !== 'cerrado' && h.fechaLimite < today;
+    const eClass   = h.estado === 'cerrado' ? 'estado-cerrado' : h.estado === 'en proceso' ? 'estado-proceso' : 'estado-abierto';
+    const eLabel   = h.estado === 'cerrado' ? 'Cerrado' : h.estado === 'en proceso' ? 'En proceso' : 'Abierto';
+    const sevBg    = h.calificacion === 'nocumple' ? '#ffcdd2' : h.calificacion === 'parcial' ? '#fff9c4' : '#e8f5e9';
+    const sevFg    = h.calificacion === 'nocumple' ? '#b71c1c' : h.calificacion === 'parcial' ? '#f57f17' : '#1b5e20';
+    const sevLabel = h.calificacion === 'nocumple' ? '🚨 URGENTE' : h.calificacion === 'parcial' ? '⚡ PRIORIDAD' : '';
+    const sevBadge = sevLabel ? `<span style="background:${sevBg};color:${sevFg};padding:2px 9px;border-radius:8px;font-size:11px;font-weight:700;letter-spacing:.3px;margin-right:6px;">${sevLabel}</span>` : '';
+    const borderColor = h.estado==='cerrado'?'#4caf50':h.calificacion==='nocumple'?'#b71c1c':'#ff8f00';
+
+    // === SECCIÓN JEFE DE COCINA ===
+    // Vista para SUPERVISOR: solo lectura de lo que ya envió el jefe
+    const jefeSectionSupervisor = h.estado !== 'cerrado' ? `
+      <div style="border-top:1px dashed #cfd8dc;margin-top:12px;padding-top:12px;">
+        <div style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">💬 Gestión del Jefe de Cocina</div>
+        ${h.comentariosJefe
+          ? `<div style="background:#e3f2fd;padding:10px 14px;border-radius:6px;font-size:13px;color:#0d47a1;line-height:1.5;white-space:pre-line;">${h.comentariosJefe.replace(/</g,'&lt;')}</div>`
+          : `<div style="background:#fafafa;border:1px dashed #cfd8dc;border-radius:6px;padding:10px 14px;font-size:12px;color:#90a4ae;font-style:italic;">⏳ El Jefe de Cocina aún no ha enviado su gestión.</div>`
+        }
+        ${h.fotosGestion
+          ? `<button class="btn btn-secondary btn-sm" style="margin-top:8px;" onclick="verFotosGestion('${h.id}')">📷 Ver ${h.fotosGestion} foto(s) de evidencia</button>`
+          : `<div style="font-size:11px;color:#90a4ae;margin-top:6px;">📷 Sin fotos cargadas aún</div>`
+        }
+      </div>` :
+      `${h.comentariosJefe?`<div style="background:#e3f2fd;padding:8px 12px;border-radius:6px;font-size:12px;color:#0d47a1;margin-top:10px;"><strong>💬 Gestión:</strong> ${h.comentariosJefe.replace(/</g,'&lt;')}</div>`:''}
+       ${h.fotosGestion?`<button class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="verFotosGestion('${h.id}')">📷 Ver ${h.fotosGestion} foto(s) de evidencia</button>`:''}`;
+
+    // Vista para JEFE DE COCINA: formulario editable
+    const jefeSectionJefe = h.estado !== 'cerrado' ? `
+      <div style="border-top:1px dashed #cfd8dc;margin-top:12px;padding-top:12px;">
+        <div style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">💬 Jefe de Cocina — Gestión</div>
+        <textarea id="ta-jefe-${h.id}" rows="3" style="width:100%;border:1px solid #90caf9;border-radius:6px;padding:7px 10px;font-size:12px;resize:vertical;background:#f8fbff;"
+          placeholder="Describe las acciones tomadas para corregir este hallazgo...">${(h.comentariosJefe||'').replace(/</g,'&lt;')}</textarea>
+        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;align-items:center;">
+          <button class="btn btn-primary btn-sm" onclick="enviarCorreccionJefe('${h.id}')">✅ Enviar corrección</button>
+          <button class="btn btn-secondary btn-sm" onclick="document.getElementById('fg-${h.id}').click()">📷 Subir fotos</button>
+          <input type="file" id="fg-${h.id}" accept="image/*" multiple style="display:none" onchange="agregarFotosGestion('${h.id}',this)">
+          <button id="btn-ver-fotos-${h.id}" class="btn btn-secondary btn-sm" style="display:${h.fotosGestion?'inline-flex':'none'};" onclick="verFotosGestion('${h.id}')">🖼 Ver ${h.fotosGestion||0} foto(s)</button>
+        </div>
+        <div id="confirm-jefe-${h.id}" style="display:none;margin-top:8px;padding:8px 12px;background:#e8f5e9;border-radius:6px;font-size:12px;color:#1b5e20;font-weight:600;">
+          ✅ Corrección recibida — gracias por tu gestión.
+        </div>
+      </div>` :
+      `${h.comentariosJefe?`<div style="background:#e3f2fd;padding:8px 12px;border-radius:6px;font-size:12px;color:#0d47a1;margin-top:10px;"><strong>💬 Gestión:</strong> ${h.comentariosJefe.replace(/</g,'&lt;')}</div>`:''}
+       ${h.fotosGestion?`<button class="btn btn-secondary btn-sm" style="margin-top:6px;" onclick="verFotosGestion('${h.id}')">📷 Ver ${h.fotosGestion} foto(s) de evidencia</button>`:''}`;
+
+    const jefeSection = esSupervisor ? jefeSectionSupervisor : jefeSectionJefe;
+
+    // === SECCIÓN SUPERVISOR (solo visible para supervisores) ===
+    const supervisorSection = !esSupervisor ? '' :
+      h.estado !== 'cerrado' ? `
+      <div style="border-top:1px dashed #cfd8dc;margin-top:12px;padding-top:12px;">
+        <div style="font-size:11px;font-weight:700;color:#1b5e20;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🔒 Supervisor de Cocina — Cierre</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end;">
+          <div style="flex:1;min-width:150px;">
+            <label style="font-size:11px;color:#546e7a;display:block;margin-bottom:3px;">Fecha límite</label>
+            <input type="date" value="${h.fechaLimite||''}" style="border:1px solid #a5d6a7;border-radius:5px;padding:6px 8px;font-size:12px;width:100%;"
+              onchange="actualizarCampoHallazgo('${h.id}','fechaLimite',this.value)">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="cerrarHallazgoSupervisor('${h.id}')">✅ Dar cierre</button>
+        </div>
+        ${vencido?`<div style="color:#b71c1c;font-size:11px;font-weight:700;margin-top:6px;">⚠️ VENCIDO — fecha límite ${formatFecha(h.fechaLimite)}</div>`:''}
+      </div>` :
+      `<div style="font-size:12px;color:#1b5e20;font-style:italic;margin-top:10px;padding-top:10px;border-top:1px dashed #c8e6c9;">✅ Cerrado por supervisor el ${formatFecha(h.fechaCierre)}</div>`;
+
+    return `<div class="hall-card" style="border-left:4px solid ${borderColor};">
+      <div class="hall-card-header" style="background:${h.estado==='cerrado'?'#f5fff8':'#fff'};">
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;">${sevBadge}${h.pdv} <span style="font-size:12px;font-weight:400;color:#546e7a">· ${formatFecha(h.fecha)}</span></div>
+          <div class="hall-meta" style="margin-top:5px;">📋 ${h.item}</div>
+          ${calcularPlazoHTML(h, today)}
+        </div>
+        <span class="estado-badge ${eClass}">${eLabel}</span>
+      </div>
+      <div class="hall-card-body">
+        <p style="font-size:13px;margin-bottom:0;white-space:pre-line;background:#fafafa;padding:8px 12px;border-radius:6px;border-left:3px solid #cfd8dc;">${h.descripcion.replace(/</g,'&lt;')}</p>
+        ${jefeSection}
+        ${supervisorSection}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// =========================================================
+// CONTROL DE ACCESO — ROLES
+// =========================================================
+let _rolLogin = '';
+
+function seleccionarRolLogin(rol) {
+  _rolLogin = rol;
+  const btnSup  = document.getElementById('btn-rol-sup');
+  const btnJefe = document.getElementById('btn-rol-jefe');
+  if (btnSup)  { btnSup.style.borderColor  = rol==='supervisor' ? '#2e7d32' : '#e0e0e0'; btnSup.style.background  = rol==='supervisor' ? '#e8f5e9' : 'white'; }
+  if (btnJefe) { btnJefe.style.borderColor = rol==='jefe'       ? '#2e7d32' : '#e0e0e0'; btnJefe.style.background = rol==='jefe'       ? '#e8f5e9' : 'white'; }
+  const pinArea = document.getElementById('login-pin-area');
+  if (pinArea) pinArea.style.display = 'block';
+  const pinEl = document.getElementById('login-pin');
+  if (pinEl) { pinEl.value = ''; setTimeout(() => pinEl.focus(), 50); }
+  const errEl = document.getElementById('login-error');
+  if (errEl) errEl.textContent = '';
+}
+
+function confirmarLogin() {
+  const pin    = (document.getElementById('login-pin') || {value:''}).value.trim();
+  const errEl  = document.getElementById('login-error');
+  if (!_rolLogin) { if (errEl) errEl.textContent = 'Selecciona un rol primero.'; return; }
+  const cfg    = getConfig();
+  const pinSup = cfg.pinSupervisor || '1234';
+  const pinJef = cfg.pinJefe       || '5678';
+  const ok = (_rolLogin === 'supervisor' && pin === pinSup) ||
+             (_rolLogin === 'jefe'       && pin === pinJef);
+  if (!ok) {
+    if (errEl) errEl.textContent = 'PIN incorrecto. Intenta de nuevo.';
+    const pinEl = document.getElementById('login-pin');
+    if (pinEl) pinEl.value = '';
+    return;
+  }
+  sessionStorage.setItem('rol_actual', _rolLogin);
+  const screen = document.getElementById('login-screen');
+  if (screen) screen.style.display = 'none';
+  aplicarRol(_rolLogin);
+}
+
+function aplicarRol(rol) {
+  // Badge en el tab bar
+  const badge  = document.getElementById('rol-badge');
+  const btnSal = document.getElementById('btn-cerrar-sesion');
+  if (badge) {
+    badge.style.display = 'inline-block';
+    if (rol === 'supervisor') {
+      badge.textContent = '🔒 Supervisor';
+      badge.style.background = '#e8f5e9'; badge.style.color = '#1b5e20';
+    } else {
+      badge.textContent = '👨‍🍳 Jefe de Cocina';
+      badge.style.background = '#e3f2fd'; badge.style.color = '#0d47a1';
+    }
+  }
+  if (btnSal) btnSal.style.display = 'inline-block';
+
+  if (rol === 'jefe') {
+    // Ocultar todas las pestañas excepto Seguimiento
+    ['formulario','historial','informe','config','analisis'].forEach(t => {
+      const btn = document.getElementById('tab-' + t);
+      if (btn) btn.style.display = 'none';
+    });
+    // Ir directo a Seguimiento
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    const pane = document.getElementById('pane-seguimiento');
+    const btn  = document.getElementById('tab-seguimiento');
+    if (pane) pane.classList.add('active');
+    if (btn)  btn.classList.add('active');
+    renderSeguimiento();
+  }
+}
+
+function cerrarSesion() {
+  sessionStorage.removeItem('rol_actual');
+  location.reload();
+}
+
+// =========================================================
+// ANALYTICS
+// =========================================================
+function detectarAlertas(db) {
+  const pdvs = [...new Set(db.map(r => r.pdv))];
+  return pdvs.reduce((acc, pdv) => {
+    const auds = db.filter(r => r.pdv === pdv)
+      .sort((a,b) => b.fecha.localeCompare(a.fecha) || b.savedAt.localeCompare(a.savedAt));
+    if (auds.length >= 2 && auds[0].estado === 'NO APROBADO' && auds[1].estado === 'NO APROBADO') {
+      acc.push({ pdv, pct: auds[0].pct, fecha: auds[0].fecha });
+    }
+    return acc;
+  }, []);
+}
+
+function renderAnalisis() {
+  const modalidadFiltro = (document.getElementById('analisis-modalidad')||{value:''}).value;
+  const tipoFiltro      = (document.getElementById('analisis-tipo')||{value:''}).value;
+  let db = getDB();
+  if (modalidadFiltro) db = db.filter(r => r.modalidad === modalidadFiltro);
+  if (tipoFiltro)      db = db.filter(r => r.tipoPdv   === tipoFiltro);
+  const contEl = document.getElementById('analisis-content');
+  if (db.length === 0) {
+    if (contEl) contEl.innerHTML = `<div class="empty-state"><div class="icon">📈</div><h3>Sin datos</h3><p>Guarda auditorías para ver el análisis aquí.</p></div>`;
+    ['analisis-kpis','analisis-ranking','analisis-items','analisis-alertas'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.innerHTML = '';
+    });
+    return;
+  }
+  if (contEl) contEl.innerHTML = '';
+
+  // KPIs
+  const total       = db.length;
+  const avg         = db.reduce((s,r) => s + r.pct, 0) / total;
+  const aprobados   = db.filter(r => r.estado === 'APROBADO').length;
+  const pdvsTotal   = [...new Set(db.map(r => r.pdv))].length;
+  const alertas     = detectarAlertas(db);
+  const kpiEl = document.getElementById('analisis-kpis');
+  if (kpiEl) kpiEl.innerHTML = `
+    <div class="kpi-card"><div class="kpi-val" style="color:#1b5e20">${total}</div><div class="kpi-lbl">Total Auditorías</div><div class="kpi-sub">${pdvsTotal} PDV${pdvsTotal!==1?'s':''} auditado${pdvsTotal!==1?'s':''}</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:${avg>=90?'#1b5e20':avg>=85?'#e65100':'#b71c1c'}">${avg.toFixed(1)}%</div><div class="kpi-lbl">Promedio General</div><div class="kpi-sub">Cumplimiento de la red</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:#1b5e20">${((aprobados/total)*100).toFixed(0)}%</div><div class="kpi-lbl">Tasa de Aprobados</div><div class="kpi-sub">${aprobados} de ${total} auditorías</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:${alertas.length>0?'#b71c1c':'#1b5e20'}">${alertas.length}</div><div class="kpi-lbl">PDVs Críticos</div><div class="kpi-sub">2+ NO APROBADO seguidos</div></div>`;
+
+  // Alerts
+  const alertEl = document.getElementById('analisis-alertas');
+  if (alertEl) alertEl.innerHTML = alertas.length > 0 ? `
+    <div class="alerta-banner">⚠️ PDV(s) con dos o más auditorías consecutivas NO APROBADO — requieren acción inmediata:
+      ${alertas.map(a=>`<div class="alerta-item">• ${a.pdv} — Último resultado: ${formatPct(a.pct)}% · ${formatFecha(a.fecha)}</div>`).join('')}
+    </div>` : '';
+
+  // Ranking
+  const pdvs = [...new Set(db.map(r => r.pdv))].sort();
+  const ranking = pdvs.map(pdv => {
+    const auds = db.filter(r => r.pdv === pdv).sort((a,b) => b.fecha.localeCompare(a.fecha));
+    const avgPdv = auds.reduce((s,r) => s + r.pct, 0) / auds.length;
+    return { pdv, avg: avgPdv, count: auds.length, last: auds[0] };
+  }).sort((a,b) => b.avg - a.avg);
+
+  const rkEl = document.getElementById('analisis-ranking');
+  if (rkEl) rkEl.innerHTML = `<table class="rank-table">
+    <thead><tr>
+      <th style="width:36px;text-align:center">#</th><th>PDV</th>
+      <th style="text-align:center">Auditorías</th><th>Promedio</th>
+      <th style="text-align:center">Última fecha</th><th style="text-align:center">Estado actual</th>
+    </tr></thead>
+    <tbody>
+      ${ranking.map((r,i) => {
+        const bc = r.avg>=90?'#2e7d32':r.avg>=85?'#ff8f00':'#c62828';
+        const eBg = r.last.pct>=90?'#c8e6c9':r.last.pct>=85?'#fff9c4':'#ffcdd2';
+        const eFg = r.last.pct>=90?'#1b5e20':r.last.pct>=85?'#e65100':'#b71c1c';
+        return `<tr>
+          <td style="text-align:center;font-weight:700;color:#aaa">${i+1}</td>
+          <td style="font-weight:600">${r.pdv}</td>
+          <td style="text-align:center">${r.count}</td>
+          <td><div style="display:flex;align-items:center;gap:8px;">
+            <div style="flex:1;background:#eceff1;border-radius:4px;height:8px;overflow:hidden;min-width:60px;">
+              <div style="width:${Math.min(Math.round(r.avg),100)}%;height:100%;background:${bc};border-radius:4px;"></div>
+            </div>
+            <span style="font-weight:700;color:${bc};min-width:44px;">${formatPct(r.avg)}%</span>
+          </div></td>
+          <td style="text-align:center;font-size:12px">${formatFecha(r.last.fecha)}</td>
+          <td style="text-align:center"><span style="background:${eBg};color:${eFg};padding:2px 10px;border-radius:10px;font-size:11px;font-weight:700;">${r.last.estado}</span></td>
+        </tr>`;
+      }).join('')}
+    </tbody></table>`;
+
+  // Item failures
+  const itemFails = ITEMS.map(it => {
+    const evaluated = db.filter(r => r.items.some(x => x.id === it.id));
+    const nocumple  = evaluated.filter(r => r.items.some(x => x.id === it.id && x.calificacion === 'nocumple')).length;
+    const parcial   = evaluated.filter(r => r.items.some(x => x.id === it.id && x.calificacion === 'parcial')).length;
+    const pctFalla  = evaluated.length > 0 ? Math.round((nocumple + parcial) / evaluated.length * 100) : 0;
+    return { ...it, nocumple, parcial, pctFalla, total: evaluated.length };
+  }).filter(x => x.pctFalla > 0).sort((a,b) => b.pctFalla - a.pctFalla);
+
+  const failEl = document.getElementById('analisis-items');
+  if (failEl) failEl.innerHTML = itemFails.length === 0
+    ? '<p style="color:#888;font-size:13px;text-align:center;padding:20px 16px;">Sin ítems con incumplimiento en el período seleccionado. ✅</p>'
+    : `<table class="rank-table"><thead><tr>
+        <th>Ítem</th>
+        <th style="text-align:center">% Falla</th>
+        <th style="text-align:center">❌ No Cumple</th>
+        <th style="text-align:center">⚠️ Parcial</th>
+        <th style="text-align:center">Evaluado</th>
+      </tr></thead><tbody>
+      ${itemFails.map(it => `<tr>
+        <td style="font-size:12px;font-weight:600;max-width:220px;">${it.nombre}</td>
+        <td style="text-align:center"><span style="background:${it.pctFalla>=50?'#ffcdd2':'#fff9c4'};color:${it.pctFalla>=50?'#b71c1c':'#e65100'};padding:2px 9px;border-radius:8px;font-size:11px;font-weight:700;">${it.pctFalla}%</span></td>
+        <td style="text-align:center;color:#b71c1c;font-weight:700">${it.nocumple}</td>
+        <td style="text-align:center;color:#e65100;font-weight:700">${it.parcial}</td>
+        <td style="text-align:center;color:#546e7a">${it.total}</td>
+      </tr>`).join('')}
+      </tbody></table>`;
+
+  renderTrendChart();
+}
+
+function renderTrendChart() {
+  const canvas = document.getElementById('trend-canvas');
+  if (!canvas) return;
+  const pdvFiltro = (document.getElementById('trend-pdv')||{value:''}).value;
+  const modalidadFiltro = (document.getElementById('analisis-modalidad')||{value:''}).value;
+  const tipoFiltro      = (document.getElementById('analisis-tipo')||{value:''}).value;
+  let db = getDB();
+  if (modalidadFiltro) db = db.filter(r => r.modalidad === modalidadFiltro);
+  if (tipoFiltro)      db = db.filter(r => r.tipoPdv   === tipoFiltro);
+
+  const sel = document.getElementById('trend-pdv');
+  if (sel) {
+    const pdvs = [...new Set(db.map(r => r.pdv))].sort();
+    const cur = sel.value;
+    sel.innerHTML = '<option value="">Todos los PDV (promedio)</option>' +
+      pdvs.map(p => `<option value="${p}"${p===cur?' selected':''}>${p}</option>`).join('');
+    if (cur && !pdvs.includes(cur)) sel.value = '';
+  }
+  if (pdvFiltro) db = db.filter(r => r.pdv === pdvFiltro);
+
+  const sorted = db.slice().sort((a,b) => a.fecha.localeCompare(b.fecha) || a.savedAt.localeCompare(b.savedAt));
+  if (sorted.length < 2) { canvas.style.display = 'none'; return; }
+  canvas.style.display = 'block';
+
+  const byDate = {};
+  sorted.forEach(r => {
+    const d = r.fecha.slice(0,10);
+    if (!byDate[d]) byDate[d] = [];
+    byDate[d].push(r.pct);
+  });
+  const dates = Object.keys(byDate).sort();
+  const vals  = dates.map(d => byDate[d].reduce((s,v)=>s+v,0)/byDate[d].length);
+
+  const dpr = window.devicePixelRatio || 1;
+  const W = canvas.offsetWidth || 600;
+  const H = 220;
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.height = H + 'px';
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  const pad = { top:20, right:20, bottom:40, left:48 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top  - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+  [60,70,80,90,100].forEach(pct => {
+    const y = pad.top + ch - (pct - 60) / 40 * ch;
+    ctx.beginPath(); ctx.strokeStyle = '#eceff1'; ctx.lineWidth = 1;
+    ctx.moveTo(pad.left, y); ctx.lineTo(pad.left + cw, y); ctx.stroke();
+    ctx.fillStyle = '#90a4ae'; ctx.font = '11px Arial'; ctx.textAlign = 'right';
+    ctx.fillText(pct + '%', pad.left - 6, y + 4);
+  });
+
+  ctx.fillStyle = 'rgba(200,230,201,0.25)';
+  const y90 = pad.top + ch - (90 - 60) / 40 * ch;
+  ctx.fillRect(pad.left, pad.top, cw, y90 - pad.top);
+
+  const xStep = cw / Math.max(dates.length - 1, 1);
+  ctx.beginPath(); ctx.strokeStyle = '#2e7d32'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+  vals.forEach((v, i) => {
+    const x = pad.left + i * xStep;
+    const y = pad.top + ch - Math.min(Math.max((v - 60) / 40, 0), 1) * ch;
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+
+  vals.forEach((v, i) => {
+    const x = pad.left + i * xStep;
+    const y = pad.top + ch - Math.min(Math.max((v - 60) / 40, 0), 1) * ch;
+    const col = v >= 90 ? '#2e7d32' : v >= 85 ? '#ff8f00' : '#c62828';
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI*2);
+    ctx.fillStyle = col; ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+    if (dates.length <= 10 || i % Math.ceil(dates.length / 8) === 0) {
+      ctx.fillStyle = '#546e7a'; ctx.font = '10px Arial'; ctx.textAlign = 'center';
+      ctx.fillText(dates[i].slice(5), x, H - pad.bottom + 16);
+    }
+  });
+}
+
+// =========================================================
+// INIT
+// =========================================================
+window.addEventListener('load', () => {
+  buildForm();
+  const now = new Date();
+  const fechaEl = document.getElementById('f_fecha');
+  const horaEl  = document.getElementById('f_hora');
+  if (fechaEl) fechaEl.value = now.toISOString().split('T')[0];
+  if (horaEl)  horaEl.value  = now.toTimeString().slice(0,5);
+  document.getElementById('h_pdv_filter').innerHTML = '<option value="">Todos los PDV</option>';
+  actualizarPDVList();
+  if (!storageDisponible()) {
+    const b = document.getElementById('storage-banner');
+    const m = document.getElementById('storage-banner-msg');
+    if (b && m) { m.textContent = 'Almacenamiento no disponible en este dispositivo.'; b.style.display = 'block'; }
+  }
+  // Firebase sync
+  initFirebase();
+  // Verificar sesión activa
+  const rolGuardado = sessionStorage.getItem('rol_actual');
+  if (rolGuardado) {
+    const screen = document.getElementById('login-screen');
+    if (screen) screen.style.display = 'none';
+    aplicarRol(rolGuardado);
+  }
+});
+</script>
+</body>
+</html>
